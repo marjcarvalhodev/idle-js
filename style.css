@@ -208,6 +208,13 @@ button {
   height: 48px;
 }
 
+.action-x {
+  right: 30px;
+  top: 96px;
+  width: 48px;
+  height: 48px;
+}
+
 #orientation-warning {
   display: none;
   position: fixed;

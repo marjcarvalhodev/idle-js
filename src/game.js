@@ -15,6 +15,7 @@ const DEFAULT_STATE = {
     equipment: { hp: 0, atk: 0, def: 0 },
     inventory: {}
   },
+  autoBattle: true,
   paused: true,
   battle: null,
   log: [],
@@ -139,7 +140,7 @@ export class Game {
   startBattle() {
     const level = playerStats(this.state).level;
     const candidates = Object.values(ENEMIES);
-    const nearby = candidates.filter((e) => Math.abs(e.level - level) <= 1);
+    const nearby = candidates.filter((e) => Math.abs(e.level - level) <= 2);
     const pool = nearby.length ? nearby : candidates;
     const template = pool[randomInt(0, pool.length - 1)];
 
@@ -324,6 +325,10 @@ export class Game {
     }
 
     this.state.player.gold += enemy.level;
+
+    if (!this.state.autoBattle) {
+      this.pause();
+    }
   }
 
   loseBattle() {
@@ -351,7 +356,7 @@ export class Game {
 
   log(message) {
     this.state.log.unshift(message);
-    this.state.log = this.state.log.slice(0, 7);
+    this.state.log = this.state.log.slice(0, 3);
   }
 
   pause() {
@@ -360,5 +365,12 @@ export class Game {
 
   reset() {
     this.state = DEFAULT_STATE;
+  }
+
+  autoBattle() {
+    this.state.autoBattle = !this.state.autoBattle;
+    if (this.state.paused) {
+      this.state.paused = false;
+    }
   }
 }

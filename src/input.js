@@ -31,7 +31,9 @@ export class Input {
         z: "a",
         enter: "a",
         x: "b",
-        escape: "b"
+        escape: "b",
+        c: "x",
+        space: "x"
       };
 
       const action = map[key];
@@ -47,6 +49,8 @@ export class Input {
       this.game.pause();
     } else if (action === "b") {
       this.game.reset();
+    } else if (action === "x") {
+      this.game.autoBattle();
     }
   }
 }
