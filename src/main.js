@@ -32,10 +32,10 @@ window.addEventListener("beforeunload", () => {
   saveState(game.state);
 });
 
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("./sw.js").catch(() => {
-    // Running from file:// or another unsupported context: ignore.
-  });
-}
+// if ("serviceWorker" in navigator) {
+//   navigator.serviceWorker.register("./sw.js").catch(() => {
+//     // Running from file:// or another unsupported context: ignore.
+//   });
+// }
 
 requestAnimationFrame(frame);
