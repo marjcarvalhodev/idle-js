@@ -8,13 +8,7 @@ export const ENEMIES = {
     def: 1,
 
     onTurn(ctx) {
-      const roll = Math.random();
-
-      // if (roll < 0.5) {
-      //   ctx.spawnEnemy("slime");
-      // } else {
-        ctx.attack();
-      // }
+      ctx.attack();
     }
   },
 
@@ -64,6 +58,7 @@ export const ENEMIES = {
     hp: 200,
     atk: 10,
     def: 5,
+    exp: 10,
 
     onTurn(ctx) {
       const roll = Math.random();

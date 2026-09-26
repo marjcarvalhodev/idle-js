@@ -1,73 +1,83 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
-  <meta name="theme-color" content="#101010" />
-  <link rel="manifest" href="./manifest.webmanifest" />
-  <link rel="stylesheet" href="./style.css" />
-  <title>Idle RPG</title>
-</head>
-<body>
-  <div id="orientation-warning" aria-hidden="true">
-    <div class="orientation-card">
-      <div class="orientation-icon">↻</div>
-      <div>Rotate to portrait</div>
-    </div>
-  </div>
-
-  <main id="app">
-    <section id="console" aria-label="Idle RPG">
-      <div id="game-shell">
-        <canvas id="game" width="420" height="380"></canvas>
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#101010" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="stylesheet" href="./style.css" />
+    <title>Idle JS</title>
+  </head>
+  <body>
+    <div id="orientation-warning" aria-hidden="true">
+      <div class="orientation-card">
+        <div class="orientation-icon">↻</div>
+        <div>Rotate to portrait</div>
       </div>
+    </div>
 
-      <section id="lower-screen">
-        <div id="hud">
-          <div class="hud-topline">
-            <span id="player-name">HERO</span>
-            <span id="player-level">LV 1</span>
-          </div>
-
-          <div class="label-row">
-            <span>HP</span>
-            <span id="hp-text">0 / 0</span>
-          </div>
-          <div class="bar"><div id="hp-fill" class="bar-fill hp"></div></div>
-
-          <div class="label-row">
-            <span>EXP</span>
-            <span id="exp-text">0 / 10</span>
-          </div>
-          <div class="bar"><div id="exp-fill" class="bar-fill exp"></div></div>
-
-          <div class="stats">
-            <div><span>ATK</span><strong id="atk">0</strong></div>
-            <div><span>DEF</span><strong id="def">0</strong></div>
-            <div><span>GOLD</span><strong id="gold">0</strong></div>
-          </div>
-
-          <div class="battle-header">
-            <span id="enemy-name">—</span>
-            <span id="battle-state">IDLE</span>
-          </div>
-
-          <div class="battle-log" id="battle-log" aria-live="polite"></div>
+    <main id="app">
+      <section id="console" aria-label="Idle RPG">
+        <div id="game-shell">
+          <canvas id="game" width="420" height="380"></canvas>
         </div>
 
-        <div id="controls">
-          <button class="button dpad up" data-action="up" aria-label="Up">▲</button>
-          <button class="button dpad left" data-action="left" aria-label="Left">◀</button>
-          <button class="button dpad down" data-action="down" aria-label="Down">▼</button>
-          <button class="button dpad right" data-action="right" aria-label="Right">▶</button>
-          <button class="button action-b" data-action="b" aria-label="B">B</button>
-          <button class="button action-a" data-action="a" aria-label="A">A</button>
-          <button class="button action-x" data-action="x" aria-label="A">X</button>
-        </div>
+        <section id="lower-screen">
+          <div id="hud">
+            <div class="player-summary">
+              <div class="orb">
+                <div class="level-badge" id="player-level">999</div>
+
+                <div id="exp-fill" class="exp-ring">
+                  <div class="hp-circle">
+                    <div id="hp-fill" class="hp-fill"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="orb-values">
+                <div>HP <strong id="hp-text">0 / 0</strong></div>
+                <div>EXP <strong id="exp-text">0 / 0</strong></div>
+              </div>
+
+              <div class="orb-values">
+                <div>GOLD <strong id="gold">0</strong></div>
+                <div>KILLS <strong id="kills">0</strong></div>
+                <div>DEATHS <strong id="deaths">0</strong></div>
+              </div>
+              <div class="orb-values">
+                <div>ATK<strong id="atk">0</strong></div>
+                <div>DEF<strong id="def">0</strong></div>
+                <div>SPD<strong id="spd">0</strong></div>
+              </div>
+            </div>
+
+            <div class="battle-header">
+              <span id="enemy-name">—</span>
+              <span id="battle-state">IDLE</span>
+            </div>
+
+            <div id="battle-log" aria-live="polite"></div>
+          </div>
+
+          <div id="controls">
+            <button class="button dpad up" data-action="up" aria-label="Up">▲</button>
+            <button class="button dpad left" data-action="left" aria-label="Left">◀</button>
+            <button class="button dpad down" data-action="down" aria-label="Down">▼</button>
+            <button class="button dpad right" data-action="right" aria-label="Right">▶</button>
+            <button class="button action-b" data-action="b" aria-label="B">B</button>
+            <button class="button action-a" data-action="a" aria-label="A">A</button>
+            <button class="button action-x" data-action="x" aria-label="X">X</button>
+          </div>
+        </section>
       </section>
-    </section>
-  </main>
+    </main>
 
-  <script type="module" src="./src/main.js"></script>
-</body>
+    <dialog id="dialog" class="dialog"></dialog>
+
+    <script type="module" src="./src/main.js"></script>
+  </body>
 </html>

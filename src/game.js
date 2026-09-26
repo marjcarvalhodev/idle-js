@@ -1,7 +1,9 @@
 import { ENEMIES } from "../content/enemies.js";
 import { rollDrops } from "../content/drops.js";
 
-export const EXP_PER_LEVEL = 10;
+export const GAME_TICK = 160;
+
+export const EXP_PER_LEVEL = 20;
 
 const BASE = { hp: 20, atk: 3, def: 1 };
 const MOD = { hp: 5, atk: 1, def: 1 };
@@ -12,6 +14,8 @@ const DEFAULT_STATE = {
     name: "HERO",
     exp: 0,
     gold: 0,
+    kills: 0,
+    deaths: 0,
     equipment: { hp: 0, atk: 0, def: 0 },
     inventory: {}
   },
@@ -138,9 +142,16 @@ export class Game {
   }
 
   startBattle() {
+    const battle = this.state.battle ?? {};
+
+    if (battle.phase === "lost") {
+      this.state.battle.playerHp = playerStats(this.state).hp;
+    }
+
+    const playerHp = (this.state.battle ?? {}).playerHp ?? playerStats(this.state).hp;
     const level = playerStats(this.state).level;
     const candidates = Object.values(ENEMIES);
-    const nearby = candidates.filter((e) => Math.abs(e.level - level) <= 2);
+    const nearby = candidates.filter((e) => Math.abs(e.level - level) <= 3);
     const pool = nearby.length ? nearby : candidates;
     const template = pool[randomInt(0, pool.length - 1)];
 
@@ -151,15 +162,16 @@ export class Game {
       hp: template.hp,
       maxHp: template.hp,
       atk: template.atk,
-      def: template.def
+      def: template.def,
+      exp: template.exp ?? 1
     };
 
     this.state.battle = {
       enemy,
-      playerHp: playerStats(this.state).hp,
+      playerHp: playerHp,
       phase: "fighting",
       elapsedMs: 0,
-      tickMs: 700,
+      tickMs: GAME_TICK,
       flash: 0,
       damagePopups: []
     };
@@ -314,7 +326,7 @@ export class Game {
 
     this.log(`${enemy.name} defeated! +1 EXP`);
 
-    this.addExp(1);
+    this.addExp(enemy.exp);
 
     const drops = rollDrops(enemy.id);
     for (const drop of drops) {
@@ -325,6 +337,7 @@ export class Game {
     }
 
     this.state.player.gold += enemy.level;
+    this.state.player.kills += 1;
 
     if (!this.state.autoBattle) {
       this.pause();
@@ -341,6 +354,7 @@ export class Game {
     this.log("You were defeated. Recovering...");
 
     this.state.player.hp = playerStats(this.state).hp;
+    this.state.player.deaths += 1;
   }
 
   addExp(amount) {
@@ -364,7 +378,9 @@ export class Game {
   }
 
   reset() {
-    this.state = DEFAULT_STATE;
+    this.state = {
+      ...clone(DEFAULT_STATE)
+    };
   }
 
   autoBattle() {
