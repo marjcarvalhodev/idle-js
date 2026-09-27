@@ -30,10 +30,11 @@ function rect(ctx, x, y, w, h, color) {
 }
 
 export class Renderer {
-  constructor(canvas, game) {
+  constructor(canvas, game, ui) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d");
     this.game = game;
+    this.ui = ui;
 
     this.ctx.imageSmoothingEnabled = false;
 
@@ -159,10 +160,10 @@ export class Renderer {
     rect(ctx, x + 2, y + 2, (w - 4) * ratio, h - 4, "#771320");
   }
 
-  text(value, x, y, size = 16) {
+  text(value, x, y, size = 16, crit = false) {
     const ctx = this.ctx;
 
-    ctx.fillStyle = "#fff";
+    ctx.fillStyle = (!crit) ? "#fff" : #d24;
     ctx.font = `bold ${size}px monospace`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";

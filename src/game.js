@@ -234,6 +234,10 @@ export class Game {
         return damage;
       },
 
+      criticalHit() {
+        
+      }
+
       heal(amount) {
         const combat = getActorAndTarget(game, actor);
         if (!combat) return 0;
@@ -389,4 +393,16 @@ export class Game {
       this.state.paused = false;
     }
   }
+
+  // openOverlay(name) {
+  //   this.state.ui.overlay = name;
+  // }
+
+  // closeOverlay() {
+  //   this.state.ui.overlay = null;
+  // }
+
+  // setScene(name) {
+  //   this.state.ui.scene = name;
+  // }
 }

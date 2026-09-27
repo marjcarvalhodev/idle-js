@@ -2,12 +2,26 @@ import { Game } from "./game.js";
 import { loadState, saveState } from "./save.js";
 import { Renderer } from "./render.js";
 import { Input } from "./input.js";
+import { UIController } from "./uiController.js";
 
 const canvas = document.querySelector("#game");
 const game = new Game(loadState());
+// game.state.ui = {
+//   scene: "battle",
+//   overlay: null
+// };
 
-const renderer = new Renderer(canvas, game);
-const input = new Input(game);
+const ui = new UIController();
+const renderer = new Renderer(canvas, game, ui);
+
+const actions = {
+  pause: () => game.pause(),
+  autobattle: () => game.autoBattle(),
+  inventory: () => ui.toggleOverlay("inventory"),
+  reset: () => game.reset(),
+  back: () => ui.closeOverlay()
+};
+const input = new Input(actions);
 
 let lastFrame = performance.now();
 let saveAccumulator = 0;
