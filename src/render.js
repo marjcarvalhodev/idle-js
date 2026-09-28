@@ -52,6 +52,7 @@ export class Renderer {
 
     this.updateHud(state, battle, stats);
     this.renderCanvas(now, state, battle, stats);
+    this.updateOverlay();
   }
 
   renderCanvas(now, state, battle, stats) {
@@ -152,6 +153,24 @@ export class Renderer {
     }
   }
 
+  updateOverlay() {
+    const dialog = this.hud.dialog;
+
+    if (this.ui.overlay === "inventory") {
+      dialog.innerHTML = `
+      <h2>Inventory</h2>
+      <pre>${JSON.stringify(this.game.state.player.inventory, null, 2)}</pre>
+      <button data-dialog-action="close">Close</button>
+    `;
+
+      if (!dialog.open) {
+        dialog.showModal();
+      }
+    } else if (dialog.open) {
+      dialog.close();
+    }
+  }
+
   bar(x, y, w, h, ratio) {
     const ctx = this.ctx;
     ratio = clamp01(ratio);
@@ -163,7 +182,7 @@ export class Renderer {
   text(value, x, y, size = 16, crit = false) {
     const ctx = this.ctx;
 
-    ctx.fillStyle = (!crit) ? "#fff" : #d24;
+    ctx.fillStyle = !crit ? "#fff" : "#d24";
     ctx.font = `bold ${size}px monospace`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";

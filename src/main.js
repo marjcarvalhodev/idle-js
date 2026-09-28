@@ -6,10 +6,6 @@ import { UIController } from "./uiController.js";
 
 const canvas = document.querySelector("#game");
 const game = new Game(loadState());
-// game.state.ui = {
-//   scene: "battle",
-//   overlay: null
-// };
 
 const ui = new UIController();
 const renderer = new Renderer(canvas, game, ui);

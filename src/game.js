@@ -1,9 +1,9 @@
 import { ENEMIES } from "../content/enemies.js";
 import { rollDrops } from "../content/drops.js";
 
-export const GAME_TICK = 160;
+export const GAME_TICK = 16;
 
-export const EXP_PER_LEVEL = 20;
+export const EXP_PER_LEVEL = 1;
 
 const BASE = { hp: 20, atk: 3, def: 1 };
 const MOD = { hp: 5, atk: 1, def: 1 };
@@ -235,8 +235,8 @@ export class Game {
       },
 
       criticalHit() {
-        
-      }
+
+      },
 
       heal(amount) {
         const combat = getActorAndTarget(game, actor);
@@ -305,7 +305,7 @@ export class Game {
           playerHp: playerStats(game.state).hp,
           phase: "fighting",
           elapsedMs: 0,
-          tickMs: 700,
+          tickMs: GAME_TICK,
           flash: 0,
           damagePopups: []
         };
