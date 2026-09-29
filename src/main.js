@@ -33,15 +33,17 @@ let currentView = "";
 async function loadView(viewName) {
   const response = await fetch(`./views/${viewName}.html`);
   const html = await response.text();
-  currentView = viewName;
 
+  currentView = viewName;
   viewContainer.innerHTML = html;
 
   const canvas = viewContainer.querySelector("#canvas");
 
   if (canvas) {
-    const gfx = canvas?.getContext("2d") ?? null;
+    const gfx = canvas.getContext("2d");
     renderer = new Renderer(gfx, game, ui);
+  } else {
+    renderer = null; // important
   }
 }
 
@@ -82,14 +84,16 @@ requestAnimationFrame(frame);
 function updateView(game, viewName) {
   const state = game.state;
   switch (viewName) {
-    case "bag":
-      {
-        const container = document.getElementById("inventory");
-        const inventory = state.player.inventory;
+    case "bag": {
+      const container = document.getElementById("inventory");
+      const inventory = state.player.inventory;
 
-        container.innerHTML = JSON.stringify(inventory, null, 2);
+      if (container) {
+        container.textContent = JSON.stringify(inventory, null, 2);
       }
+
       break;
+    }
 
     default:
       break;
