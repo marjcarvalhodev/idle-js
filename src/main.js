@@ -19,7 +19,9 @@ const actions = {
   pause: () => game.pause(),
   autobattle: () => game.autoBattle(),
   reset: () => game.reset(),
-  back: () => ui.closeOverlay()
+  back: () => ui.closeOverlay(),
+
+  clearcache: () => clearAppCache()
 };
 
 new Input(actions);
@@ -98,4 +100,18 @@ function updateView(game, viewName) {
     default:
       break;
   }
+}
+
+async function clearAppCache() {
+  const keys = await caches.keys();
+
+  await Promise.all(keys.map((key) => caches.delete(key)));
+
+  if ("serviceWorker" in navigator) {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+
+    await Promise.all(registrations.map((registration) => registration.unregister()));
+  }
+
+  location.reload();
 }
