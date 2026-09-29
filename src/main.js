@@ -28,19 +28,24 @@ const game = new Game(loadState());
 const ui = new UIController();
 let renderer = null;
 
+let currentView = "";
+
 async function loadView(viewName) {
   const response = await fetch(`./views/${viewName}.html`);
   const html = await response.text();
+  currentView = viewName;
 
   viewContainer.innerHTML = html;
 
   const canvas = viewContainer.querySelector("#canvas");
 
-  const gfx = canvas.getContext("2d") ?? null;
-  renderer = new Renderer(gfx, game, ui);
+  if (canvas) {
+    const gfx = canvas?.getContext("2d") ?? null;
+    renderer = new Renderer(gfx, game, ui);
+  }
 }
 
-loadView("home");
+await loadView("home");
 
 let lastFrame = performance.now();
 let saveAccumulator = 0;
@@ -50,7 +55,8 @@ function frame(now) {
   lastFrame = now;
 
   game.update(dt);
-  renderer.render(now);
+  renderer?.render(now);
+  updateView(game, currentView);
 
   saveAccumulator += dt;
   if (saveAccumulator >= 3000) {
@@ -72,3 +78,20 @@ window.addEventListener("beforeunload", () => {
 // }
 
 requestAnimationFrame(frame);
+
+function updateView(game, viewName) {
+  const state = game.state;
+  switch (viewName) {
+    case "bag":
+      {
+        const container = document.getElementById("inventory");
+        const inventory = state.player.inventory;
+
+        container.innerHTML = JSON.stringify(inventory, null, 2);
+      }
+      break;
+
+    default:
+      break;
+  }
+}

@@ -2,23 +2,24 @@ export class Input {
   constructor(actions) {
     this.actions = actions;
 
-    document.querySelectorAll("[data-action]").forEach((button) => {
-      const action = button.dataset.action;
+    document.addEventListener("pointerdown", (event) => {
+      const button = event.target.closest("[data-action]");
+      if (!button) return;
 
-      const press = (event) => {
-        event.preventDefault();
-        button.classList.add("pressed");
-        this.handle(action);
-      };
+      event.preventDefault();
+      button.classList.add("pressed");
 
-      const release = () => {
-        button.classList.remove("pressed");
-      };
+      this.handle(button.dataset.action);
+    });
 
-      button.addEventListener("pointerdown", press);
-      button.addEventListener("pointerup", release);
-      button.addEventListener("pointercancel", release);
-      button.addEventListener("pointerleave", release);
+    document.addEventListener("pointerup", (event) => {
+      const button = event.target.closest("[data-action]");
+      button?.classList.remove("pressed");
+    });
+
+    document.addEventListener("pointercancel", (event) => {
+      const button = event.target.closest("[data-action]");
+      button?.classList.remove("pressed");
     });
   }
 

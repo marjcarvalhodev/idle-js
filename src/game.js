@@ -20,7 +20,7 @@ const DEFAULT_STATE = {
     inventory: {}
   },
   autoBattle: true,
-  paused: true,
+  paused: false,
   battle: null,
   log: [],
   lastSavedAt: Date.now()
