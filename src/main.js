@@ -4,19 +4,32 @@ import { Renderer } from "./render.js";
 import { Input } from "./input.js";
 import { UIController } from "./uiController.js";
 
+const viewContainer = document.querySelector("#view-container");
+
+const nav = {
+  bag: () => laodView("bag"),
+  battle: () => laodView("battle"),
+  home: () => laodView("home"),
+  settings: () => laodView("settings")
+};
+
+const actions = {
+  pause: () => game.pause(),
+  autobattle: () => game.autoBattle(),
+  reset: () => game.reset(),
+  back: () => ui.closeOverlay()
+};
+
+async function laodView(viewName) {
+  viewContainer.innerHTML = await fetch();
+}
+
 const canvas = document.querySelector("#game");
 const game = new Game(loadState());
 
 const ui = new UIController();
 const renderer = new Renderer(canvas, game, ui);
 
-const actions = {
-  pause: () => game.pause(),
-  autobattle: () => game.autoBattle(),
-  inventory: () => ui.toggleOverlay("inventory"),
-  reset: () => game.reset(),
-  back: () => ui.closeOverlay()
-};
 const input = new Input(actions);
 
 let lastFrame = performance.now();

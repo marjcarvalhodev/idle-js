@@ -156,9 +156,9 @@ export class Renderer {
   updateOverlay() {
     const dialog = this.hud.dialog;
 
-    if (this.ui.overlay === "inventory") {
+    if (this.ui.overlay === "bag") {
       dialog.innerHTML = `
-      <h2>Inventory</h2>
+      <h2>Bag</h2>
       <pre>${JSON.stringify(this.game.state.player.inventory, null, 2)}</pre>
       <button data-dialog-action="close">Close</button>
     `;
