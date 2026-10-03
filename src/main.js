@@ -3,6 +3,15 @@ import { loadState, saveState } from "./save.js";
 import { Renderer } from "./render.js";
 import { UIController } from "./uiController.js";
 import { Input } from "./input.js";
+import { enums } from "./enums.js";
+import { Entity } from "./entity.js";
+
+// const entities = [];
+// for (let i = 0; i < 10; i++) {
+//   const entity = new Entity(enums, 10);
+//   entities.push(entity);
+// }
+// console.log(entities);
 
 const viewContainer = document.querySelector("#view-container");
 
@@ -10,7 +19,8 @@ const nav = {
   bag: () => loadView("bag"),
   battle: () => loadView("battle"),
   home: () => loadView("home"),
-  settings: () => loadView("settings")
+  settings: () => loadView("settings"),
+  world: () => loadView("world")
 };
 
 const actions = {
@@ -18,7 +28,10 @@ const actions = {
 
   pause: () => game.pause(),
   autobattle: () => game.autoBattle(),
-  reset: () => game.reset(),
+  reset: () => {
+    game.reset();
+    nav.battle();
+  },
   back: () => ui.closeOverlay(),
 
   clearcache: () => clearAppCache()
@@ -27,6 +40,8 @@ const actions = {
 new Input(actions);
 
 const game = new Game(loadState());
+game.offlineSim();
+
 const ui = new UIController();
 let renderer = null;
 
@@ -49,7 +64,7 @@ async function loadView(viewName) {
   }
 }
 
-await loadView("home");
+await loadView("battle");
 
 let lastFrame = performance.now();
 let saveAccumulator = 0;
@@ -63,13 +78,15 @@ function frame(now) {
   updateView(game, currentView);
 
   saveAccumulator += dt;
-  if (saveAccumulator >= 3000) {
+  if (saveAccumulator >= 3_000) {
     saveState(game.state);
     saveAccumulator = 0;
   }
 
   requestAnimationFrame(frame);
 }
+
+// requestAnimationFrame(frame);
 
 window.addEventListener("beforeunload", () => {
   saveState(game.state);
@@ -81,7 +98,9 @@ window.addEventListener("beforeunload", () => {
 //   });
 // }
 
-requestAnimationFrame(frame);
+function genDungeon(biome) {
+  return new Dungeon(enums.biomes[biome]);
+}
 
 function updateView(game, viewName) {
   const state = game.state;

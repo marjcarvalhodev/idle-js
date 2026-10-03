@@ -1,5 +1,7 @@
 import { ENEMIES } from "../content/enemies.js";
 import { rollDrops } from "../content/drops.js";
+import { enums } from "./enums.js";
+import { Entity } from "./entity.js";
 
 export const GAME_TICK = 16;
 
@@ -150,19 +152,16 @@ export class Game {
 
     const playerHp = (this.state.battle ?? {}).playerHp ?? playerStats(this.state).hp;
     const level = playerStats(this.state).level;
-    const candidates = Object.values(ENEMIES);
-    const nearby = candidates.filter((e) => Math.abs(e.level - level) <= 3);
-    const pool = nearby.length ? nearby : candidates;
-    const template = pool[randomInt(0, pool.length - 1)];
+    const template = new Entity(enums, level);
 
     const enemy = {
-      id: template.id,
       name: template.name,
       level: template.level,
-      hp: template.hp,
-      maxHp: template.hp,
-      atk: template.atk,
-      def: template.def,
+      hp: template.stats.hp,
+      maxHp: template.stats.hp,
+      atk: template.stats.atk,
+      def: template.stats.def,
+      onTurn: template.onTurn,
       exp: template.exp ?? 1
     };
 
@@ -185,7 +184,6 @@ export class Game {
 
     const p = playerStats(this.state);
     const enemy = battle.enemy;
-    const enemyScript = ENEMIES[enemy.id];
 
     const ctx = this.createContext("player");
     ctx.attack();
@@ -195,7 +193,7 @@ export class Game {
       return;
     }
 
-    enemyScript?.onTurn?.(this.createContext("enemy"));
+    enemy?.onTurn(this.createContext("enemy"));
 
     if (battle.playerHp <= 0) {
       this.loseBattle();
@@ -234,9 +232,7 @@ export class Game {
         return damage;
       },
 
-      criticalHit() {
-
-      },
+      criticalHit() {},
 
       heal(amount) {
         const combat = getActorAndTarget(game, actor);
@@ -332,13 +328,13 @@ export class Game {
 
     this.addExp(enemy.exp);
 
-    const drops = rollDrops(enemy.id);
-    for (const drop of drops) {
-      this.state.player.inventory[drop.itemId] =
-        (this.state.player.inventory[drop.itemId] ?? 0) + drop.amount;
+    // const drops = rollDrops(enemy.id);
+    // for (const drop of drops) {
+    //   this.state.player.inventory[drop.itemId] =
+    //     (this.state.player.inventory[drop.itemId] ?? 0) + drop.amount;
 
-      this.log(`Drop: ${drop.amount}x ${drop.itemId}`);
-    }
+    //   this.log(`Drop: ${drop.amount}x ${drop.itemId}`);
+    // }
 
     this.state.player.gold += enemy.level;
     this.state.player.kills += 1;
@@ -394,15 +390,132 @@ export class Game {
     }
   }
 
-  // openOverlay(name) {
-  //   this.state.ui.overlay = name;
-  // }
+  offlineSim() {
+    this.state.paused = false;
 
-  // closeOverlay() {
-  //   this.state.ui.overlay = null;
-  // }
+    const iterations = 100_000;
 
-  // setScene(name) {
-  //   this.state.ui.scene = name;
-  // }
+    const startKills = this.state.player.kills;
+    const startDeaths = this.state.player.deaths;
+    const startExp = this.state.player.exp;
+    const startInventory = structuredClone(this.state.player.inventory);
+
+    const enemyStats = {
+      count: 0,
+      hp: 0,
+      atk: 0,
+      def: 0,
+      spd: 0
+    };
+
+    const archetypeCounts = {};
+    const raceCounts = {};
+    const damageTypeCounts = {};
+
+    const start = performance.now();
+
+    for (let i = 0; i < iterations; i++) {
+      const battle = this.state.battle;
+
+      if (battle.phase === "fighting") {
+        this.battleTick();
+      } else {
+        this.startBattle();
+
+        const enemy = this.state.battle?.enemy;
+
+        if (enemy) {
+          enemyStats.count++;
+
+          enemyStats.hp += enemy.stats?.hp ?? enemy.hp ?? 0;
+          enemyStats.atk += enemy.stats?.atk ?? enemy.atk ?? 0;
+          enemyStats.def += enemy.stats?.def ?? enemy.def ?? 0;
+          enemyStats.spd += enemy.stats?.spd ?? enemy.spd ?? 0;
+
+          archetypeCounts[enemy.archetype] = (archetypeCounts[enemy.archetype] ?? 0) + 1;
+
+          raceCounts[enemy.race] = (raceCounts[enemy.race] ?? 0) + 1;
+
+          damageTypeCounts[enemy.damageType] = (damageTypeCounts[enemy.damageType] ?? 0) + 1;
+        }
+      }
+    }
+
+    const elapsedMs = performance.now() - start;
+    const elapsedSec = elapsedMs / 1000;
+
+    const kills = this.state.player.kills - startKills;
+    const deaths = this.state.player.deaths - startDeaths;
+    const exp = this.state.player.exp - startExp;
+
+    const resolvedBattles = kills + deaths;
+    const winRate = resolvedBattles > 0 ? (kills / resolvedBattles) * 100 : 0;
+
+    const inventoryDelta = {};
+
+    for (const [item, amount] of Object.entries(this.state.player.inventory)) {
+      const before = startInventory[item] ?? 0;
+      const gained = amount - before;
+
+      if (gained > 0) {
+        inventoryDelta[item] = gained;
+      }
+    }
+
+    const totalDrops = Object.values(inventoryDelta).reduce((sum, amount) => sum + amount, 0);
+
+    const avgEnemyStats =
+      enemyStats.count > 0
+        ? {
+            hp: Number((enemyStats.hp / enemyStats.count).toFixed(2)),
+            atk: Number((enemyStats.atk / enemyStats.count).toFixed(2)),
+            def: Number((enemyStats.def / enemyStats.count).toFixed(2)),
+            spd: Number((enemyStats.spd / enemyStats.count).toFixed(2))
+          }
+        : {};
+
+    console.log({
+      simulation: {
+        iterations,
+        spawnedEnemies: enemyStats.count,
+        resolvedBattles
+      },
+
+      performance: {
+        elapsedMs: Number(elapsedMs.toFixed(2)),
+        iterationsPerSec: Math.round(iterations / elapsedSec),
+        enemiesPerSec: enemyStats.count ? Number((enemyStats.count / elapsedSec).toFixed(2)) : 0,
+        resolvedBattlesPerSec: resolvedBattles
+          ? Number((resolvedBattles / elapsedSec).toFixed(2))
+          : 0
+      },
+
+      battles: {
+        kills,
+        deaths,
+        winRatePct: Number(winRate.toFixed(2)),
+        lossRatePct: Number((100 - winRate).toFixed(2)),
+        deathsPerKill: kills > 0 ? Number((deaths / kills).toFixed(2)) : null
+      },
+
+      progression: {
+        exp,
+        expPerKill: kills > 0 ? Number((exp / kills).toFixed(2)) : 0,
+        expPerResolvedBattle: resolvedBattles > 0 ? Number((exp / resolvedBattles).toFixed(2)) : 0
+      },
+
+      enemies: {
+        averageStats: avgEnemyStats,
+        byRace: raceCounts,
+        byArchetype: archetypeCounts,
+        byDamageType: damageTypeCounts
+      },
+
+      loot: {
+        totalDrops,
+        dropsPerKill: kills > 0 ? Number((totalDrops / kills).toFixed(3)) : 0,
+        items: inventoryDelta
+      }
+    });
+  }
 }
