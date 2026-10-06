@@ -30,21 +30,15 @@ function rect(gfx, x, y, w, h, color) {
 }
 
 export class Renderer {
-  constructor(gfx, game, ui) {
-    if (gfx) {
-      this.gfx = gfx;
-
-      this.gfx.imageSmoothingEnabled = false;
-    }
+  constructor(canvas, game) {
+    this.gfx = canvas.getContext("2d");
+    this.gfx.imageSmoothingEnabled = false;
 
     this.game = game;
-    this.ui = ui;
 
-    this.hud = {};
-
-    for (const [key, id] of Object.entries(HUD_ELEMENTS)) {
-      this.hud[key] = document.getElementById(id);
-    }
+    this.hud = Object.fromEntries(
+      Object.entries(HUD_ELEMENTS).map(([key, id]) => [key, document.getElementById(id)])
+    );
   }
 
   render(now) {
@@ -52,44 +46,29 @@ export class Renderer {
     const battle = state.battle;
     const stats = playerStats(state);
 
-    if (this.gfx) {
-      this.renderCanvas(now, state, battle, stats);
-    }
+    this.renderCanvas(now, state, battle, stats);
     this.updateHud(state, battle, stats);
-    this.updateOverlay();
   }
 
   updateHud(state, battle, stats) {
     const currentHp = battle ? Math.max(0, battle.playerHp) : stats.hp;
-
     const hpRatio = clamp01(currentHp / stats.hp);
-
     const expInLevel = state.player.exp % EXP_PER_LEVEL;
     const expRatio = clamp01(expInLevel / EXP_PER_LEVEL);
 
     this.hud.playerLevel.textContent = stats.level;
-
     this.hud.hpText.textContent = `${Math.ceil(currentHp)} / ${stats.hp}`;
-
     this.hud.hpFill.style.height = `${hpRatio * 100}%`;
-
     this.hud.expText.textContent = `${expInLevel} / ${EXP_PER_LEVEL}`;
-
     this.hud.expFill.style.setProperty("--exp", `${expRatio * 100}%`);
-
     this.hud.atk.textContent = stats.atk;
     this.hud.def.textContent = stats.def;
     this.hud.gold.textContent = state.player.gold;
     this.hud.kills.textContent = state.player.kills;
     this.hud.deaths.textContent = state.player.deaths;
-
     this.hud.enemyName.textContent = battle ? `${battle.enemy.name} LV${battle.enemy.level}` : "—";
-
     this.hud.battleState.textContent = battle?.phase?.toUpperCase() ?? "IDLE";
-
     this.hud.battleLog.textContent = state.log.join("\n");
-
-    // this.updateDialog(state);
   }
 
   updateDialog(state) {
@@ -100,24 +79,6 @@ export class Renderer {
     if (state.paused && !dialog.open) {
       dialog.showModal();
     } else if (!state.paused && dialog.open) {
-      dialog.close();
-    }
-  }
-
-  updateOverlay() {
-    const dialog = this.hud.dialog;
-
-    if (this.ui.overlay === "bag") {
-      dialog.innerHTML = `
-      <h2>Bag</h2>
-      <pre>${JSON.stringify(this.game.state.player.inventory, null, 2)}</pre>
-      <button data-dialog-action="close">Close</button>
-    `;
-
-      if (!dialog.open) {
-        dialog.showModal();
-      }
-    } else if (dialog.open) {
       dialog.close();
     }
   }

@@ -1,3 +1,5 @@
+const SPICE = 5;
+
 export class Entity {
   constructor(enums, level = 1) {
     function rollRandom(range) {
@@ -13,10 +15,10 @@ export class Entity {
       const statBias = enums.archStatBias[archetype];
 
       return {
-        hp: (rollRandom(5) + statBias.hp) * level,
-        atk: (rollRandom(5) + statBias.atk) * level,
-        def: (rollRandom(5) + statBias.def) * level,
-        spd: (rollRandom(5) + statBias.spd) * level
+        hp: (rollRandom(SPICE) + statBias.hp) * level,
+        atk: (rollRandom(SPICE) + statBias.atk) * level,
+        def: (rollRandom(SPICE) + statBias.def) * level,
+        spd: (rollRandom(SPICE) + statBias.spd) * level
       };
     }
 
@@ -26,7 +28,7 @@ export class Entity {
     this.archetype = pickRandom(enums.archetypes);
     this.damageType = pickRandom(enums.damageTypes);
 
-    this.name = `${this.damageType} ${this.race} ${this.archetype}`;
+    this.name = `${this.race} ${this.archetype} ${this.damageType}`;
 
     this.stats = rollStats(enums, this.archetype, this.level);
 
