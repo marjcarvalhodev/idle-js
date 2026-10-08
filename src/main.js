@@ -21,7 +21,7 @@ const actions = {
   autobattle: () => game.autoBattle(),
   reset: () => {
     game.reset();
-    nav.battle();
+    nav.home();
   },
   clearcache: () => clearAppCache()
 };

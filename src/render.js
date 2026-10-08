@@ -1,4 +1,4 @@
-import { playerStats, EXP_PER_LEVEL } from "./game.js";
+import { EXP_PER_LEVEL } from "./player.js";
 
 const W = 420;
 const H = 380;
@@ -44,15 +44,15 @@ export class Renderer {
   render(now) {
     const state = this.game.state;
     const battle = state.battle;
-    const stats = playerStats(state);
+    const stats = state.player.stats;
 
-    this.renderCanvas(now, state, battle, stats);
-    this.updateHud(state, battle, stats);
+    if (!battle) this.renderCanvas(now, state, battle);
+    // this.updateHud(state, battle, stats);
   }
 
   updateHud(state, battle, stats) {
-    const currentHp = battle ? Math.max(0, battle.playerHp) : stats.hp;
-    const hpRatio = clamp01(currentHp / stats.hp);
+    const currentHp = battle ? Math.max(0, stats.hp) : state.player.baseStats.hp;
+    const hpRatio = clamp01(currentHp / state.player.baseStats.hp);
     const expInLevel = state.player.exp % EXP_PER_LEVEL;
     const expRatio = clamp01(expInLevel / EXP_PER_LEVEL);
 
@@ -61,33 +61,25 @@ export class Renderer {
     this.hud.hpFill.style.height = `${hpRatio * 100}%`;
     this.hud.expText.textContent = `${expInLevel} / ${EXP_PER_LEVEL}`;
     this.hud.expFill.style.setProperty("--exp", `${expRatio * 100}%`);
-    this.hud.atk.textContent = stats.atk;
-    this.hud.def.textContent = stats.def;
+
+    this.hud.atk.textContent = state.player.baseStats.atk;
+    this.hud.def.textContent = state.player.baseStats.def;
+    this.hud.spd.textContent = state.player.baseStats.spd;
     this.hud.gold.textContent = state.player.gold;
     this.hud.kills.textContent = state.player.kills;
     this.hud.deaths.textContent = state.player.deaths;
-    this.hud.enemyName.textContent = battle ? `${battle.enemy.name} LV${battle.enemy.level}` : "—";
+    this.hud.enemyName.textContent = battle
+      ? `${battle.enemy().name} LV${battle.enemy().level}`
+      : "—";
     this.hud.battleState.textContent = battle?.phase?.toUpperCase() ?? "IDLE";
     this.hud.battleLog.textContent = state.log.join("\n");
   }
 
-  updateDialog(state) {
-    const dialog = this.hud.dialog;
-
-    if (!dialog) return;
-
-    if (state.paused && !dialog.open) {
-      dialog.showModal();
-    } else if (!state.paused && dialog.open) {
-      dialog.close();
-    }
-  }
-
-  renderCanvas(now, state, battle, stats) {
+  renderCanvas(now, state, battle) {
     this.drawBackground();
 
     this.text("IDLE RPG", W / 2, 22, 14);
-    this.text(`LV ${stats.level}`, W / 2, 41, 12);
+    this.text(`LV ${state.player.lastLevel}`, W / 2, 41, 12);
 
     if (state.paused) {
       this.text("PAUSED...", W / 2, H / 2, 20);
@@ -99,37 +91,41 @@ export class Renderer {
       return;
     }
 
-    this.drawBattle(now, battle, stats);
+    this.drawBattle(now, battle);
   }
 
   drawBackground() {
     const gfx = this.gfx;
 
+    // const colors = this.game.state.dungeon.biome.ui.bgColor;
+    // rect(gfx, 0, 0, W, H, colors.primary);
     rect(gfx, 0, 0, W, H, "#152315");
 
     for (let y = 0; y < H; y += 20) {
       for (let x = 0; x < W; x += 20) {
         if ((x / 20 + y / 20) % 2 === 0) {
+          // rect(gfx, x, y, 20, 20, colors.secondary);
           rect(gfx, x, y, 20, 20, "#192919");
         }
       }
     }
   }
 
-  drawBattle(now, battle, stats) {
-    this.text(`${battle.enemy.name}  LV${battle.enemy.level}`, W / 2, 64, 18);
+  drawBattle(now, battle) {
+    const enemy = battle.enemy();
 
-    this.bar(115, 78, 190, 16, battle.enemy.hp / battle.enemy.maxHp);
-    this.text(`${battle.enemy.hp} / ${battle.enemy.maxHp}`, W / 2, 87, 12);
+    this.text(`${enemy.name}  LV${enemy.level}`, W / 2, 64, 18);
+
+    this.bar(115, 78, 190, 16, enemy.hp / enemy.baseStats.hp);
+    this.text(`${enemy.hp} / ${enemy.baseStats.hp}`, W / 2, 87, 12);
 
     this.drawEnemy(W / 2, 150, now);
     this.drawPlayer(W / 2, 287, now);
 
-    this.text(`HP ${Math.max(0, Math.ceil(battle.playerHp))}/${stats.hp}`, W / 2, 342, 13);
-
-    if (battle.phase === "won") {
+    const loser = battle.loser();
+    if (loser.name !== "Hero") {
       this.text("VICTORY!", W / 2, 220, 24);
-    } else if (battle.phase === "lost") {
+    } else {
       this.text("DEFEATED", W / 2, 220, 24);
     }
 
@@ -207,7 +203,7 @@ export class Renderer {
 
       const y = baseY - age * 0.05;
 
-      this.text(`-${popup.value}`, x, y, 18);
+      this.text(`${popup.value}`, x, y, 18);
 
       popup.life -= 16.7;
 
