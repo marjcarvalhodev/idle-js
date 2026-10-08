@@ -4,6 +4,8 @@ import { Renderer } from "./render.js";
 import { UIController } from "./uiController.js";
 import { Input } from "./input.js";
 
+const GAME_SPEED = 0.1;
+
 const viewContainer = document.querySelector("#view-container");
 
 const nav = {
@@ -17,17 +19,25 @@ const nav = {
 const actions = {
   ...nav,
 
+  atbMode: () => game.atbMode(),
+  battleAction: () => game.battleAction(),
+
   pause: () => game.pause(),
   autobattle: () => game.autoBattle(),
+
   reset: () => {
-    game.reset();
+    game = new Game();
     nav.home();
   },
-  clearcache: () => clearAppCache()
+
+  clearcache: () => {
+    clearAppCache();
+    nav.home();
+  }
 };
 
 const input = new Input(actions);
-const game = new Game(loadState());
+let game = new Game(loadState());
 
 let renderer = null;
 let currentView = "";
@@ -35,13 +45,15 @@ let saveAccumulator = 0;
 let lastFrame = performance.now();
 
 function frame(now) {
-  const dt = Math.min(100, now - lastFrame);
+  const realDt = Math.min(100, now - lastFrame);
   lastFrame = now;
 
-  game.update(dt);
+  const gameDt = realDt * GAME_SPEED;
+
+  game.update(gameDt);
   updateView(currentView, now);
 
-  saveAccumulator += dt;
+  saveAccumulator += realDt;
 
   if (saveAccumulator >= 3_000) {
     saveState(game.state);
@@ -49,7 +61,7 @@ function frame(now) {
   }
 
   requestAnimationFrame(frame);
-}
+};
 
 window.addEventListener("beforeunload", () => {
   saveState(game.state);
@@ -77,9 +89,10 @@ function updateView(viewName, now) {
 
     case "bag": {
       const container = viewContainer.querySelector("#inventory");
+      const bag = game.state.player?.inventory ?? {};
 
       if (container) {
-        container.textContent = JSON.stringify(game.state.player.inventory, null, 2);
+        container.textContent = JSON.stringify(bag, null, 2);
       }
 
       break;

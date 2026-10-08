@@ -10,7 +10,7 @@ const gameStates = {
   IDLE: "idle"
 };
 
-const DEBUG = true;
+const DEBUG = false;
 
 const IDLE_TICK = 100;
 
@@ -21,9 +21,40 @@ const DEFAULT_STATE = {
   paused: true,
   battle: null,
   dungeon: null,
+  atbMode: "auto",
   log: [],
   lastSavedAt: Date.now()
 };
+
+function loadPlayer(savedPlayer) {
+  const player = new Player();
+
+  if (savedPlayer) {
+    Object.assign(player, savedPlayer);
+
+    player.baseStats = {
+      ...player.baseStats,
+      ...(savedPlayer.baseStats ?? {})
+    };
+
+    player.stats = {
+      ...player.stats,
+      ...(savedPlayer.stats ?? {})
+    };
+
+    player.equipment = {
+      ...player.equipment,
+      ...(savedPlayer.equipment ?? {})
+    };
+
+    player.inventory = {
+      ...player.inventory,
+      ...(savedPlayer.inventory ?? {})
+    };
+  }
+
+  return player;
+}
 
 export class Game {
   constructor(savedState) {
@@ -32,13 +63,18 @@ export class Game {
       ...(savedState ? UTILS.clone(savedState) : {})
     };
 
-    this.state.player = { ...(this.state.player ?? new Player()) };
+    this.state.battle = null;
+    this.state.dungeon = null;
+    this.state.gameState = gameStates.IDLE;
 
     this.state.log = Array.isArray(this.state.log) ? this.state.log : [];
 
     this.idleTick = IDLE_TICK;
     this.idleCounter = 0;
     this.patience = 3;
+
+    const savedPlayer = this.state.player;
+    this.state.player = loadPlayer(savedPlayer);
   }
 
   update(dt) {
@@ -114,6 +150,11 @@ export class Game {
         break;
       }
     }
+
+    if (this.state.dungeon.log) {
+      this.log(this.state.dungeon.log);
+      this.state.dungeon.log = null;
+    }
   }
 
   handleFighting(dt) {
@@ -129,6 +170,11 @@ export class Game {
       this.state.battle.update(dt);
     }
 
+    if (this.state.battle.log) {
+      this.log(this.state.battle.log);
+      this.state.battle.log = null;
+    }
+
     if (this.state.battle.phase === "ended") {
       this.battleResult();
       this.cleanUpBattle();
@@ -142,7 +188,7 @@ export class Game {
 
   startBattle() {
     const enemy = this.state.dungeon.eventData;
-    this.state.battle = new Battle([{ ...this.state.player }, enemy]);
+    this.state.battle = new Battle([{ ...this.state.player }, enemy], this.state.atbMode);
   }
 
   battleResult() {
@@ -151,13 +197,22 @@ export class Game {
     if (this.state.battle.loser().name !== "Hero") {
       this.log("player won");
 
+      this.state.player.kills += 1;
       this.state.player.exp += 1;
 
-      if (this.state.player.level() > this.state.player.lastLevel) {
-        this.state.player.lastLevel++;
+      if (Math.random() > 0.5) {
+        const randCoin = Math.random() * this.state.battle.enemy().level;
+        this.state.player.gold += Math.max(1, Math.floor(randCoin));
+      }
+
+      if (this.state.player.level() > this.state.player.currentLevel) {
+        this.state.player.currentLevel++;
+        this.state.player.levelUp();
+        this.state.player.recover();
         this.log("*** PLAYER LEVEL UP!!! ***");
       }
     } else {
+      this.state.player.deaths += 1;
       this.log("player lost");
     }
   }
@@ -186,16 +241,20 @@ export class Game {
     this.state.paused = !this.state.paused;
   }
 
-  reset() {
-    this.state = {
-      ...UTILS.clone(DEFAULT_STATE)
-    };
-  }
-
   autoBattle() {
     this.state.autoBattle = !this.state.autoBattle;
     if (this.state.paused) {
       this.state.paused = false;
     }
+  }
+
+  atbMode() {
+    if (this.state.atbMode === "manual") {
+      this.state.atbMode = "auto";
+    } else {
+      this.state.atbMode = "manual";
+    }
+
+    this.state.battle.atbMode = this.state.atbMode;
   }
 }

@@ -1,4 +1,4 @@
-const MAX_DELAY = 5000;
+const MAX_DELAY = 2000;
 const MAX_ACTIONS = 4;
 const MIN_DELAY = MAX_DELAY / MAX_ACTIONS;
 const SPEED_FACTOR = 0.05;
@@ -7,11 +7,12 @@ const decay = (spd) => Math.E ** (-SPEED_FACTOR * spd);
 const actionDelay = (spd) => MIN_DELAY + (MAX_DELAY - MIN_DELAY) * decay(spd);
 
 export class Battle {
-  constructor(actors = []) {
-    this.flow = "manual";
+  constructor(actors = [], atbMode = "auto") {
+    this.atbMode = atbMode;
     this.actors = actors;
     this.phase = "fight";
     this.turns = 0;
+    this.log = "battle started";
 
     this.damagePopups = [];
 
@@ -19,8 +20,6 @@ export class Battle {
       actor.delay = actionDelay(actor.stats.spd);
       actor.nextAction = () => this.attack(actor);
     });
-
-    console.log("battle started");
   }
 
   update(dt) {
@@ -62,7 +61,7 @@ export class Battle {
       return;
     }
 
-    if (this.flow === "manual" && this.playerTurn(actor)) {
+    if (this.atbMode === "manual" && this.playerTurn(actor)) {
       this.phase = "waiting";
       return;
     }
@@ -74,7 +73,7 @@ export class Battle {
     this.turns++;
 
     const result = actor.nextAction();
-    console.log(`[TURN ${this.turns}] ${result}`);
+    if (result) this.log = `[TURN ${this.turns}] ${result}`;
 
     actor.delay += actionDelay(actor.stats.spd);
   }
