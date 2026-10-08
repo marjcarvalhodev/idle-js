@@ -27,3 +27,17 @@ export function saveState(state) {
     // Storage can be unavailable in private/restricted contexts.
   }
 }
+
+export async function clearAppCache() {
+  const keys = await caches.keys();
+
+  await Promise.all(keys.map((key) => caches.delete(key)));
+
+  if ("serviceWorker" in navigator) {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+
+    await Promise.all(registrations.map((registration) => registration.unregister()));
+  }
+
+  location.reload();
+}

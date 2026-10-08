@@ -1,118 +1,80 @@
-import { ENEMIES } from "../content/enemies.js";
-import { rollDrops } from "../content/drops.js";
+import { UTILS } from "./utils.js";
+import { DATA } from "./data.js";
+import { Player } from "./player.js";
+import { Dungeon, dungeonEvents } from "./dungeon.js";
+import { Battle } from "./battle.js";
 
-export const GAME_TICK = 16;
+const gameStates = {
+  EXPLORING: "exploring",
+  FIGHTING: "fighting",
+  IDLE: "idle"
+};
 
-export const EXP_PER_LEVEL = 1;
+const DEBUG = false;
 
-const BASE = { hp: 20, atk: 3, def: 1 };
-const MOD = { hp: 5, atk: 1, def: 1 };
+const IDLE_TICK = 100;
 
 const DEFAULT_STATE = {
   version: 1,
-  player: {
-    name: "HERO",
-    exp: 0,
-    gold: 0,
-    kills: 0,
-    deaths: 0,
-    equipment: { hp: 0, atk: 0, def: 0 },
-    inventory: {}
-  },
-  autoBattle: true,
-  paused: false,
+  gameState: gameStates.IDLE,
+  autoBattle: false,
+  paused: true,
   battle: null,
+  dungeon: null,
+  atbMode: "auto",
   log: [],
   lastSavedAt: Date.now()
 };
 
-function clone(value) {
-  return structuredClone(value);
-}
+function loadPlayer(savedPlayer) {
+  const player = new Player();
 
-function randomInt(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
+  if (savedPlayer) {
+    Object.assign(player, savedPlayer);
 
-export function playerLevel(exp) {
-  return Math.floor(exp / EXP_PER_LEVEL) + 1;
-}
+    player.baseStats = {
+      ...player.baseStats,
+      ...(savedPlayer.baseStats ?? {})
+    };
 
-export function playerStats(state) {
-  const p = state.player;
-  const level = playerLevel(p.exp);
-  const eq = p.equipment ?? {};
+    player.stats = {
+      ...player.stats,
+      ...(savedPlayer.stats ?? {})
+    };
 
-  return {
-    level,
-    hp: BASE.hp + level * MOD.hp + (eq.hp ?? 0),
-    atk: BASE.atk + level * MOD.atk + (eq.atk ?? 0),
-    def: BASE.def + level * MOD.def + (eq.def ?? 0)
-  };
-}
+    player.equipment = {
+      ...player.equipment,
+      ...(savedPlayer.equipment ?? {})
+    };
 
-function getActorAndTarget(game, actor) {
-  const battle = game.state.battle;
-  if (!battle) return null;
+    player.inventory = {
+      ...player.inventory,
+      ...(savedPlayer.inventory ?? {})
+    };
+  }
 
-  const player = playerStats(game.state);
-
-  return actor === "player"
-    ? {
-        actorStats: player,
-        targetStats: battle.enemy,
-        actorHp: () => battle.playerHp,
-        setActorHp: (value) => (battle.playerHp = value),
-        targetHp: () => battle.enemy.hp,
-        setTargetHp: (value) => (battle.enemy.hp = value),
-        actorName: "You",
-        targetName: battle.enemy.name,
-        actorId: "player",
-        targetId: "enemy"
-      }
-    : {
-        actorStats: battle.enemy,
-        targetStats: player,
-        actorHp: () => battle.enemy.hp,
-        setActorHp: (value) => (battle.enemy.hp = value),
-        targetHp: () => battle.playerHp,
-        setTargetHp: (value) => (battle.playerHp = value),
-        actorName: battle.enemy.name,
-        targetName: "You",
-        actorId: "enemy",
-        targetId: "player"
-      };
+  return player;
 }
 
 export class Game {
   constructor(savedState) {
     this.state = {
-      ...clone(DEFAULT_STATE),
-      ...(savedState ? clone(savedState) : {})
+      ...UTILS.clone(DEFAULT_STATE),
+      ...(savedState ? UTILS.clone(savedState) : {})
     };
 
-    this.state.player = {
-      ...clone(DEFAULT_STATE.player),
-      ...(this.state.player ?? {})
-    };
-
-    this.state.player.equipment = {
-      ...clone(DEFAULT_STATE.player.equipment),
-      ...(this.state.player.equipment ?? {})
-    };
-
-    this.state.player.inventory = {
-      ...(this.state.player.inventory ?? {})
-    };
+    this.state.battle = null;
+    this.state.dungeon = null;
+    this.state.gameState = gameStates.IDLE;
 
     this.state.log = Array.isArray(this.state.log) ? this.state.log : [];
 
-    this.state.player.hp = Math.max(
-      1,
-      Math.min(this.state.player.hp ?? playerStats(this.state).hp, playerStats(this.state).hp)
-    );
+    this.idleTick = IDLE_TICK;
+    this.idleCounter = 0;
+    this.patience = 3;
 
-    this.startBattle();
+    const savedPlayer = this.state.player;
+    this.state.player = loadPlayer(savedPlayer);
   }
 
   update(dt) {
@@ -120,271 +82,163 @@ export class Game {
       return;
     }
 
-    if (!this.state.battle) {
-      this.startBattle();
+    switch (this.state.gameState) {
+      case gameStates.EXPLORING: {
+        this.handleExploration();
+        break;
+      }
+
+      case gameStates.FIGHTING: {
+        this.handleFighting(dt);
+        break;
+      }
+
+      case gameStates.IDLE: {
+        this.handleIdle(dt);
+        break;
+      }
+
+      default: {
+        break;
+      }
+    }
+  }
+
+  handleIdle(dt) {
+    if (this.idleCounter > this.patience) {
+      this.log("time for some trouble!");
+
+      this.state.gameState = gameStates.EXPLORING;
+      this.patience = Math.random() * 10;
+      this.idleCounter = 0;
+
       return;
     }
 
-    const battle = this.state.battle;
-    battle.elapsedMs += dt;
+    this.idleTick -= dt;
+    if (this.idleTick <= 0) {
+      this.log("mopping around...");
 
-    if (battle.phase === "fighting") {
-      while (battle.elapsedMs >= battle.tickMs) {
-        battle.elapsedMs -= battle.tickMs;
-        this.battleTick();
-        if (!this.state.battle || this.state.battle.phase !== "fighting") {
-          break;
-        }
+      this.idleTick += IDLE_TICK;
+      this.idleCounter++;
+    }
+  }
+
+  handleExploration() {
+    if (!this.state.dungeon) {
+      this.findDungeon();
+    }
+
+    this.state.dungeon.rollExploration();
+    const event = this.state.dungeon.event;
+
+    switch (event) {
+      case dungeonEvents.NOTHING: {
+        this.state.gameState = gameStates.IDLE;
+        break;
       }
-    } else if (battle.elapsedMs >= 450) {
+      case dungeonEvents.FIGHT: {
+        this.state.gameState = gameStates.FIGHTING;
+        break;
+      }
+      case dungeonEvents.LOOT: {
+        this.state.gameState = gameStates.IDLE;
+        break;
+      }
+
+      default: {
+        break;
+      }
+    }
+
+    if (this.state.dungeon.log) {
+      this.log(this.state.dungeon.log);
+      this.state.dungeon.log = null;
+    }
+  }
+
+  handleFighting(dt) {
+    if (!this.state.battle) {
       this.startBattle();
     }
+
+    if (this.state.battle.phase === "waiting") {
+      this.log("Player turn");
+    }
+
+    if (this.state.battle.phase === "fight" || this.state.battle.phase === "move") {
+      this.state.battle.update(dt);
+    }
+
+    if (this.state.battle.log) {
+      this.log(this.state.battle.log);
+      this.state.battle.log = null;
+    }
+
+    if (this.state.battle.phase === "ended") {
+      this.battleResult();
+      this.cleanUpBattle();
+    }
+  }
+
+  findDungeon() {
+    const biome = UTILS.pickRandom(DATA.biomes);
+    this.state.dungeon = new Dungeon(biome, this.state.player.level());
   }
 
   startBattle() {
-    const battle = this.state.battle ?? {};
-
-    if (battle.phase === "lost") {
-      this.state.battle.playerHp = playerStats(this.state).hp;
-    }
-
-    const playerHp = (this.state.battle ?? {}).playerHp ?? playerStats(this.state).hp;
-    const level = playerStats(this.state).level;
-    const candidates = Object.values(ENEMIES);
-    const nearby = candidates.filter((e) => Math.abs(e.level - level) <= 3);
-    const pool = nearby.length ? nearby : candidates;
-    const template = pool[randomInt(0, pool.length - 1)];
-
-    const enemy = {
-      id: template.id,
-      name: template.name,
-      level: template.level,
-      hp: template.hp,
-      maxHp: template.hp,
-      atk: template.atk,
-      def: template.def,
-      exp: template.exp ?? 1
-    };
-
-    this.state.battle = {
-      enemy,
-      playerHp: playerHp,
-      phase: "fighting",
-      elapsedMs: 0,
-      tickMs: GAME_TICK,
-      flash: 0,
-      damagePopups: []
-    };
-
-    this.log(`A wild ${enemy.name} appeared!`);
+    const enemy = this.state.dungeon.eventData;
+    this.state.battle = new Battle([{ ...this.state.player }, enemy], this.state.atbMode);
   }
 
-  battleTick() {
-    const battle = this.state.battle;
-    if (!battle || battle.phase !== "fighting") return;
+  battleResult() {
+    this.log("battle ended");
 
-    const p = playerStats(this.state);
-    const enemy = battle.enemy;
-    const enemyScript = ENEMIES[enemy.id];
+    if (this.state.battle.loser().name !== "Hero") {
+      this.log("player won");
 
-    const ctx = this.createContext("player");
-    ctx.attack();
+      this.state.player.kills += 1;
+      this.state.player.exp += 1;
 
-    if (enemy.hp <= 0) {
-      this.winBattle();
-      return;
-    }
-
-    enemyScript?.onTurn?.(this.createContext("enemy"));
-
-    if (battle.playerHp <= 0) {
-      this.loseBattle();
-      return;
-    }
-  }
-
-  createContext(actor) {
-    const game = this;
-
-    return {
-      actor,
-
-      attack() {
-        const combat = getActorAndTarget(game, actor);
-        if (!combat) return 0;
-
-        const damage = Math.max(1, combat.actorStats.atk - combat.targetStats.def);
-
-        combat.setTargetHp(combat.targetHp() - damage);
-
-        game.state.battle.damagePopups.push({
-          target: combat.targetId,
-          value: damage,
-          life: 500
-        });
-
-        game.state.battle.flash = 120;
-
-        game.log(
-          actor === "player"
-            ? `You hit ${combat.targetName} for ${damage}.`
-            : `${combat.actorName} hits you for ${damage}.`
-        );
-
-        return damage;
-      },
-
-      criticalHit() {
-
-      },
-
-      heal(amount) {
-        const combat = getActorAndTarget(game, actor);
-        if (!combat) return 0;
-
-        const heal = Math.max(0, amount);
-        const maxHp = combat.actorStats.hp ?? combat.actorStats.maxHp;
-
-        const before = combat.actorHp();
-        const after = Math.min(maxHp, before + heal);
-
-        combat.setActorHp(after);
-
-        return after - before;
-      },
-
-      damage(amount) {
-        const combat = getActorAndTarget(game, actor);
-        if (!combat) return 0;
-
-        const damage = Math.max(0, amount);
-
-        combat.setTargetHp(combat.targetHp() - damage);
-
-        game.state.battle.damagePopups.push({
-          target: combat.targetId,
-          value: damage,
-          life: 500
-        });
-
-        return damage;
-      },
-
-      addExp(amount) {
-        game.addExp(amount);
-      },
-
-      addGold(amount) {
-        game.state.player.gold = Math.max(0, game.state.player.gold + amount);
-      },
-
-      addItem(itemId, amount = 1) {
-        const inv = game.state.player.inventory;
-        inv[itemId] = (inv[itemId] ?? 0) + amount;
-        game.log(`Found ${amount}x ${itemId}.`);
-      },
-
-      setFlag(name, value) {
-        game.state.flags ??= {};
-        game.state.flags[name] = value;
-      },
-
-      spawnEnemy(enemyId) {
-        if (!ENEMIES[enemyId]) return;
-        const e = ENEMIES[enemyId];
-        game.state.battle = {
-          enemy: {
-            id: e.id,
-            name: e.name,
-            level: e.level,
-            hp: e.hp,
-            maxHp: e.hp,
-            atk: e.atk,
-            def: e.def
-          },
-          playerHp: playerStats(game.state).hp,
-          phase: "fighting",
-          elapsedMs: 0,
-          tickMs: GAME_TICK,
-          flash: 0,
-          damagePopups: []
-        };
-      },
-
-      applyStatus(statusId, turns) {
-        game.state.statuses ??= {};
-        game.state.statuses[statusId] = {
-          turns: Math.max(0, turns)
-        };
+      if (Math.random() > 0.5) {
+        const randCoin = Math.random() * this.state.battle.enemy().level;
+        this.state.player.gold += Math.max(1, Math.floor(randCoin));
       }
-    };
-  }
 
-  winBattle() {
-    const battle = this.state.battle;
-    if (!battle) return;
-
-    const enemy = battle.enemy;
-    battle.phase = "won";
-    battle.elapsedMs = 0;
-
-    this.log(`${enemy.name} defeated! +1 EXP`);
-
-    this.addExp(enemy.exp);
-
-    const drops = rollDrops(enemy.id);
-    for (const drop of drops) {
-      this.state.player.inventory[drop.itemId] =
-        (this.state.player.inventory[drop.itemId] ?? 0) + drop.amount;
-
-      this.log(`Drop: ${drop.amount}x ${drop.itemId}`);
-    }
-
-    this.state.player.gold += enemy.level;
-    this.state.player.kills += 1;
-
-    if (!this.state.autoBattle) {
-      this.pause();
+      if (this.state.player.level() > this.state.player.currentLevel) {
+        this.state.player.currentLevel++;
+        this.state.player.levelUp();
+        this.state.player.recover();
+        this.log("*** PLAYER LEVEL UP!!! ***");
+      }
+    } else {
+      this.state.player.deaths += 1;
+      this.log("player lost");
     }
   }
 
-  loseBattle() {
-    const battle = this.state.battle;
-    if (!battle) return;
-
-    battle.phase = "lost";
-    battle.elapsedMs = 0;
-
-    this.log("You were defeated. Recovering...");
-
-    this.state.player.hp = playerStats(this.state).hp;
-    this.state.player.deaths += 1;
+  cleanUpBattle() {
+    this.state.battle = null;
+    this.state.dungeon = null;
+    this.state.gameState = gameStates.IDLE;
+    if (this.state.player.stats.hp <= 0) {
+      this.state.player.recover();
+      this.patience = 10;
+    }
   }
 
-  addExp(amount) {
-    const oldLevel = playerLevel(this.state.player.exp);
-    this.state.player.exp += amount;
-    const newLevel = playerLevel(this.state.player.exp);
-
-    if (newLevel > oldLevel) {
-      this.state.player.hp = playerStats(this.state).hp;
-      this.log(`LEVEL UP! You reached LV ${newLevel}!`);
-    }
+  battleAction() {
+    this.state.battle?.playerAction();
   }
 
   log(message) {
+    if (DEBUG) console.log(message);
     this.state.log.unshift(message);
     this.state.log = this.state.log.slice(0, 3);
   }
 
   pause() {
     this.state.paused = !this.state.paused;
-  }
-
-  reset() {
-    this.state = {
-      ...clone(DEFAULT_STATE)
-    };
   }
 
   autoBattle() {
@@ -394,15 +248,13 @@ export class Game {
     }
   }
 
-  // openOverlay(name) {
-  //   this.state.ui.overlay = name;
-  // }
+  atbMode() {
+    if (this.state.atbMode === "manual") {
+      this.state.atbMode = "auto";
+    } else {
+      this.state.atbMode = "manual";
+    }
 
-  // closeOverlay() {
-  //   this.state.ui.overlay = null;
-  // }
-
-  // setScene(name) {
-  //   this.state.ui.scene = name;
-  // }
+    this.state.battle.atbMode = this.state.atbMode;
+  }
 }

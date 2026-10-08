@@ -1,4 +1,4 @@
-import { playerStats, EXP_PER_LEVEL } from "./game.js";
+import { EXP_PER_LEVEL } from "./player.js";
 
 const W = 420;
 const H = 380;
@@ -11,6 +11,7 @@ const HUD_ELEMENTS = {
   expFill: "exp-fill",
   atk: "atk",
   def: "def",
+  spd: "spd",
   gold: "gold",
   kills: "kills",
   deaths: "deaths",
@@ -30,103 +31,53 @@ function rect(gfx, x, y, w, h, color) {
 }
 
 export class Renderer {
-  constructor(gfx, game, ui) {
-    if (gfx) {
-      this.gfx = gfx;
-
-      this.gfx.imageSmoothingEnabled = false;
-    }
+  constructor(canvas, game) {
+    this.gfx = canvas.getContext("2d");
+    this.gfx.imageSmoothingEnabled = false;
 
     this.game = game;
-    this.ui = ui;
 
-    this.hud = {};
-
-    for (const [key, id] of Object.entries(HUD_ELEMENTS)) {
-      this.hud[key] = document.getElementById(id);
-    }
+    this.hud = Object.fromEntries(
+      Object.entries(HUD_ELEMENTS).map(([key, id]) => [key, document.getElementById(id)])
+    );
   }
 
   render(now) {
     const state = this.game.state;
     const battle = state.battle;
-    const stats = playerStats(state);
+    const stats = state.player.stats;
 
-    if (this.gfx) {
-      this.renderCanvas(now, state, battle, stats);
-    }
+    this.renderCanvas(now, state, battle);
     this.updateHud(state, battle, stats);
-    this.updateOverlay();
   }
 
   updateHud(state, battle, stats) {
-    const currentHp = battle ? Math.max(0, battle.playerHp) : stats.hp;
-
-    const hpRatio = clamp01(currentHp / stats.hp);
-
+    const currentHp = battle ? Math.max(0, stats.hp) : state.player.baseStats.hp;
+    const hpRatio = clamp01(currentHp / state.player.baseStats.hp);
     const expInLevel = state.player.exp % EXP_PER_LEVEL;
     const expRatio = clamp01(expInLevel / EXP_PER_LEVEL);
 
-    this.hud.playerLevel.textContent = stats.level;
-
-    this.hud.hpText.textContent = `${Math.ceil(currentHp)} / ${stats.hp}`;
-
+    this.hud.playerLevel.textContent = state.player.currentLevel;
+    this.hud.hpText.textContent = `${Math.ceil(currentHp)} / ${state.player.baseStats.hp}`;
     this.hud.hpFill.style.height = `${hpRatio * 100}%`;
-
     this.hud.expText.textContent = `${expInLevel} / ${EXP_PER_LEVEL}`;
-
     this.hud.expFill.style.setProperty("--exp", `${expRatio * 100}%`);
 
-    this.hud.atk.textContent = stats.atk;
-    this.hud.def.textContent = stats.def;
+    this.hud.atk.textContent = state.player.baseStats.atk;
+    this.hud.def.textContent = state.player.baseStats.def;
+    this.hud.spd.textContent = state.player.baseStats.spd;
     this.hud.gold.textContent = state.player.gold;
     this.hud.kills.textContent = state.player.kills;
     this.hud.deaths.textContent = state.player.deaths;
-
-    this.hud.enemyName.textContent = battle ? `${battle.enemy.name} LV${battle.enemy.level}` : "—";
-
+    this.hud.enemyName.textContent = battle
+      ? `${battle.enemy().name} LV${battle.enemy().level}`
+      : "—";
     this.hud.battleState.textContent = battle?.phase?.toUpperCase() ?? "IDLE";
-
     this.hud.battleLog.textContent = state.log.join("\n");
-
-    // this.updateDialog(state);
   }
 
-  updateDialog(state) {
-    const dialog = this.hud.dialog;
-
-    if (!dialog) return;
-
-    if (state.paused && !dialog.open) {
-      dialog.showModal();
-    } else if (!state.paused && dialog.open) {
-      dialog.close();
-    }
-  }
-
-  updateOverlay() {
-    const dialog = this.hud.dialog;
-
-    if (this.ui.overlay === "bag") {
-      dialog.innerHTML = `
-      <h2>Bag</h2>
-      <pre>${JSON.stringify(this.game.state.player.inventory, null, 2)}</pre>
-      <button data-dialog-action="close">Close</button>
-    `;
-
-      if (!dialog.open) {
-        dialog.showModal();
-      }
-    } else if (dialog.open) {
-      dialog.close();
-    }
-  }
-
-  renderCanvas(now, state, battle, stats) {
+  renderCanvas(now, state, battle) {
     this.drawBackground();
-
-    this.text("IDLE RPG", W / 2, 22, 14);
-    this.text(`LV ${stats.level}`, W / 2, 41, 12);
 
     if (state.paused) {
       this.text("PAUSED...", W / 2, H / 2, 20);
@@ -138,38 +89,46 @@ export class Renderer {
       return;
     }
 
-    this.drawBattle(now, battle, stats);
+    this.drawBattle(now, battle);
   }
 
   drawBackground() {
     const gfx = this.gfx;
 
-    rect(gfx, 0, 0, W, H, "#152315");
+    const colorsDefault = { primary: "#152315", secondary: "#192919" };
+    const colors = this.game.state.dungeon?.biome.ui.bgColor ?? colorsDefault;
+
+    rect(gfx, 0, 0, W, H, colors.primary);
 
     for (let y = 0; y < H; y += 20) {
       for (let x = 0; x < W; x += 20) {
         if ((x / 20 + y / 20) % 2 === 0) {
-          rect(gfx, x, y, 20, 20, "#192919");
+          rect(gfx, x, y, 20, 20, colors.secondary);
         }
       }
     }
   }
 
-  drawBattle(now, battle, stats) {
-    this.text(`${battle.enemy.name}  LV${battle.enemy.level}`, W / 2, 64, 18);
+  drawBattle(now, battle) {
+    const enemy = battle.enemy();
 
-    this.bar(115, 78, 190, 16, battle.enemy.hp / battle.enemy.maxHp);
-    this.text(`${battle.enemy.hp} / ${battle.enemy.maxHp}`, W / 2, 87, 12);
+    this.text(`${this.game.state.dungeon.biome.ui.title}`, W / 2, 32, 18);
+    this.text(`${enemy.name}  LV${enemy.level}`, W / 2, 64, 18);
+
+    this.bar(115, 78, 190, 16, enemy.stats.hp / enemy.baseStats.hp);
+    this.text(`${enemy.stats.hp} / ${enemy.baseStats.hp}`, W / 2, 87, 12);
 
     this.drawEnemy(W / 2, 150, now);
     this.drawPlayer(W / 2, 287, now);
 
-    this.text(`HP ${Math.max(0, Math.ceil(battle.playerHp))}/${stats.hp}`, W / 2, 342, 13);
+    const loser = battle.loser();
 
-    if (battle.phase === "won") {
-      this.text("VICTORY!", W / 2, 220, 24);
-    } else if (battle.phase === "lost") {
-      this.text("DEFEATED", W / 2, 220, 24);
+    if (loser) {
+      if (loser.name !== "Hero") {
+        this.text("VICTORY!", W / 2, 220, 24);
+      } else {
+        this.text("DEFEATED", W / 2, 220, 24);
+      }
     }
 
     this.drawDamagePopups(now);
@@ -246,7 +205,7 @@ export class Renderer {
 
       const y = baseY - age * 0.05;
 
-      this.text(`-${popup.value}`, x, y, 18);
+      this.text(`${popup.value}`, x, y, 18);
 
       popup.life -= 16.7;
 
