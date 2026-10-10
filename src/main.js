@@ -4,7 +4,7 @@ import { Renderer } from "./render.js";
 import { UIController } from "./uiController.js";
 import { Input } from "./input.js";
 
-const GAME_SPEED = 0.1;
+const GAME_SPEED = 0.5;
 
 const viewContainer = document.querySelector("#view-container");
 

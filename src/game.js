@@ -194,7 +194,7 @@ export class Game {
   battleResult() {
     this.log("battle ended");
 
-    if (this.state.battle.loser().name !== "Hero") {
+    if (this.state.battle.loser().archetype !== "hero") {
       this.log("player won");
 
       this.state.player.kills += 1;

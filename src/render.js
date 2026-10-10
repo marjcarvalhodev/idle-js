@@ -110,6 +110,7 @@ export class Renderer {
   }
 
   drawBattle(now, battle) {
+    const player = battle.player();
     const enemy = battle.enemy();
 
     this.text(`${this.game.state.dungeon.biome.ui.title}`, W / 2, 32, 18);
@@ -120,11 +121,12 @@ export class Renderer {
 
     this.drawEnemy(W / 2, 150, now);
     this.drawPlayer(W / 2, 287, now);
+    this.text(`${player.name}  LV${player.level()}`, W / 2, 348, 12);
 
     const loser = battle.loser();
 
     if (loser) {
-      if (loser.name !== "Hero") {
+      if (loser.archetype !== "hero") {
         this.text("VICTORY!", W / 2, 220, 24);
       } else {
         this.text("DEFEATED", W / 2, 220, 24);

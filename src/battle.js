@@ -1,8 +1,9 @@
+import { DATA } from "./data.js";
+
 const MAX_DELAY = 2000;
 const MAX_ACTIONS = 4;
-const MIN_DELAY = MAX_DELAY / MAX_ACTIONS;
 const SPEED_FACTOR = 0.05;
-
+const MIN_DELAY = MAX_DELAY / MAX_ACTIONS;
 const decay = (spd) => Math.E ** (-SPEED_FACTOR * spd);
 const actionDelay = (spd) => MIN_DELAY + (MAX_DELAY - MIN_DELAY) * decay(spd);
 
@@ -79,15 +80,16 @@ export class Battle {
   }
 
   playerTurn(a) {
-    return this.phase === "fight" && a.name === "Hero";
+    return this.phase === "fight" && a.archetype === "hero";
   }
 
   attack(actor) {
-    const target = this.target(actor);
-    const damage = Math.max(1, actor.stats.atk - target.stats.def);
+    const target = this.targetOf(actor);
+    const damage = Math.max(1, this.damage(actor));
+
     target.stats.hp -= damage;
 
-    this.updateUi(actor.name === "Hero" ? "enemy" : "player", `-${damage}`);
+    this.updateUi(actor.archetype === "hero" ? "enemy" : "player", `-${damage}`);
 
     return `${actor.name} attacks ${target.name} for ${damage} damage.`;
   }
@@ -96,7 +98,7 @@ export class Battle {
     const amount = Math.min(1, actor.baseStats.hp * 0.1);
     actor.stats.hp = Math.max(target.stats.hp + amount, actor.baseStats.hp);
 
-    this.updateUi(actor.name !== "Hero" ? "enemy" : "player", `${damage}`);
+    this.updateUi(actor.archetype !== "hero" ? "enemy" : "player", `${damage}`);
 
     return `${actor.name} heals for ${amount} hp.`;
   }
@@ -108,16 +110,29 @@ export class Battle {
     this.battleResult();
   }
 
-  player = () => this.actors.find((a) => a.name === "Hero");
-  enemy = () => this.actors.find((a) => a.name !== "Hero");
+  damage(actor) {
+    const target = this.targetOf(actor);
+
+    const raceBonus = DATA.raceDamageMods[actor.race][target.race];
+    const dmgTypeBonus = DATA.damageTypeMods[actor.damageType];
+
+    const totalDmg = actor.stats.atk * raceBonus;
+
+    const totalReduction = Object.entries(dmgTypeBonus).reduce(
+      (sum, [stat, multiplier]) => sum + (target.stats[stat] ?? 0) * multiplier,
+      0
+    );
+
+    const damage = Math.max(1, Math.round(totalDmg - totalReduction));
+    return damage;
+  }
+
+  player = () => this.actors.find((a) => a.archetype === "hero");
+  enemy = () => this.actors.find((a) => a.archetype !== "hero");
   loser = () => this.actors.find((a) => a.stats.hp <= 0);
-  target = (a) => this.actors.find((o) => o !== a && o.stats.hp > 0);
+  targetOf = (a) => this.actors.find((o) => o !== a && o.stats.hp > 0);
 
   updateUi(target, value) {
-    this.damagePopups.push({
-      target: target,
-      value: value,
-      life: 500
-    });
+    this.damagePopups.push({ target: target, value: value, life: 500 });
   }
 }

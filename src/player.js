@@ -1,10 +1,16 @@
+import { UTILS } from "./utils.js";
+import { DATA } from "./data.js";
+
 export const EXP_PER_LEVEL = 1;
 
 export class Player {
   constructor() {
-    this.name = "Hero";
-    this.initialStats = { hp: 10, atk: 5, def: 5, spd: 5 };
-    this.baseStats = { hp: 10, atk: 5, def: 5, spd: 5 };
+    this.race = UTILS.pickRandom(DATA.races);
+    this.archetype = "hero";
+    this.damageType = UTILS.pickRandom(DATA.damageTypes);
+    this.name = `Hero ${this.race} ${this.damageType} `;
+    this.initialStats = { hp: 5, atk: 5, def: 5, spd: 5 };
+    this.baseStats = { hp: 5, atk: 5, def: 5, spd: 5 };
     this.stats = { ...this.baseStats };
     this.exp = 0;
     this.gold = 0;

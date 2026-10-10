@@ -19,6 +19,13 @@ const damageTypes = {
   COSMIC: "cosmic"
 };
 
+const raceDamageMods = {
+  human: { beast: 2.0, demi: 1.0, monster: 0.25, human: 0.5 },
+  beast: { demi: 2.0, monster: 1.0, human: 0.25, beast: 0.5 },
+  demi: { monster: 2.0, human: 1.0, beast: 0.25, demi: 0.5 },
+  monster: { human: 2.0, beast: 1.0, demi: 0.25, monster: 0.5 }
+};
+
 const archStatBias = {
   balanced: { hp: 2, atk: 3, def: 3, spd: 2 },
   tank: { hp: 4, atk: 1, def: 4, spd: 1 },
@@ -26,11 +33,11 @@ const archStatBias = {
   swift: { hp: 1, atk: 3, def: 1, spd: 5 }
 };
 
-const raceDamageMods = {
-  human: { beast: 2.0, demi: 1.0, monster: 0.25, human: 0.5 },
-  beast: { demi: 2.0, monster: 1.0, human: 0.25, beast: 0.5 },
-  demi: { monster: 2.0, human: 1.0, beast: 0.25, demi: 0.5 },
-  monster: { human: 2.0, beast: 1.0, demi: 0.25, monster: 0.5 }
+const damageTypeMods = {
+  natural: { def: 1.0, natRes: 1.0, magRes: 0.0 },
+  magical: { def: 1.0, natRes: 0.0, magRes: 1.0 },
+  spirit: { def: 1.0, natRes: 0.5, magRes: 0.5 },
+  cosmic: { def: 1.5, natRes: 0.0, magRes: 0.0 }
 };
 
 const biomes = {
@@ -101,8 +108,9 @@ export const DATA = {
   races,
   archetypes,
   damageTypes,
-  archStatBias,
   raceDamageMods,
+  archStatBias,
+  damageTypeMods,
   biomes,
   traits
 };
