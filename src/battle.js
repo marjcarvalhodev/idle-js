@@ -2,10 +2,10 @@ import { DATA } from "./data.js";
 
 const MAX_DELAY = 2000;
 const MAX_ACTIONS = 4;
-const SPEED_FACTOR = 0.05;
+const SPEED_FACTOR = 0.01;
 const MIN_DELAY = MAX_DELAY / MAX_ACTIONS;
-const decay = (spd) => Math.E ** (-SPEED_FACTOR * spd);
-const actionDelay = (spd) => MIN_DELAY + (MAX_DELAY - MIN_DELAY) * decay(spd);
+const decay = (spd, level) => Math.exp((-SPEED_FACTOR * spd) / Math.sqrt(level));
+const actionDelay = (spd, level) => MIN_DELAY + (MAX_DELAY - MIN_DELAY) * decay(spd, level);
 
 export class Battle {
   constructor(actors = [], atbMode = "auto") {
@@ -18,7 +18,7 @@ export class Battle {
     this.damagePopups = [];
 
     this.actors.forEach((actor) => {
-      actor.delay = actionDelay(actor.stats.spd);
+      actor.delay = actionDelay(actor.stats.spd, actor.level);
       actor.nextAction = () => this.attack(actor);
     });
   }
@@ -76,7 +76,7 @@ export class Battle {
     const result = actor.nextAction();
     if (result) this.log = `[TURN ${this.turns}] ${result}`;
 
-    actor.delay += actionDelay(actor.stats.spd);
+    actor.delay += actionDelay(actor.stats.spd, actor.level);
   }
 
   playerTurn(a) {
@@ -85,12 +85,15 @@ export class Battle {
 
   attack(actor) {
     const target = this.targetOf(actor);
-    const damage = Math.max(1, this.damage(actor));
+    if (this.dodge(actor)) {
+      this.updateUi(actor.archetype === "hero" ? "enemy" : "player", `MISS`);
+      return `${actor.name} attacks ${target.name}... but misses.`;
+    }
 
+    const damage = Math.max(1, this.damage(actor));
     target.stats.hp -= damage;
 
     this.updateUi(actor.archetype === "hero" ? "enemy" : "player", `-${damage}`);
-
     return `${actor.name} attacks ${target.name} for ${damage} damage.`;
   }
 
@@ -103,28 +106,35 @@ export class Battle {
     return `${actor.name} heals for ${amount} hp.`;
   }
 
-  sim() {
-    while (!this.battleEnded()) {
-      this.update(16);
-    }
-    this.battleResult();
-  }
-
   damage(actor) {
     const target = this.targetOf(actor);
 
     const raceBonus = DATA.raceDamageMods[actor.race][target.race];
     const dmgTypeBonus = DATA.damageTypeMods[actor.damageType];
 
-    const totalDmg = actor.stats.atk * raceBonus;
+    const tdmg = actor.stats.atk;
 
-    const totalReduction = Object.entries(dmgTypeBonus).reduce(
+    const tred = Object.entries(dmgTypeBonus).reduce(
       (sum, [stat, multiplier]) => sum + (target.stats[stat] ?? 0) * multiplier,
       0
     );
 
-    const damage = Math.max(1, Math.round(totalDmg - totalReduction));
+    const baseDamage = (tdmg * tdmg) / (tdmg + tred);
+    const damage = Math.max(1, Math.round(baseDamage * raceBonus));
     return damage;
+  }
+
+  dodge(actor) {
+    const target = this.targetOf(actor);
+
+    const atkSpd = actor.stats.spd;
+    const defSpd = target.stats.spd;
+
+    const advantage = (defSpd - atkSpd) / Math.max(1, defSpd + atkSpd);
+
+    const chance = Math.max(0, Math.min(0.35, advantage));
+
+    return Math.random() < chance;
   }
 
   player = () => this.actors.find((a) => a.archetype === "hero");

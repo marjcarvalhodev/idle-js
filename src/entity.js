@@ -19,7 +19,12 @@ export class Entity {
 
     this.traits = [];
 
-    this.statTotal = Object.values(this.stats).reduce((a, c) => (a += c));
+    this.statTotal =
+      this.baseStats.hp / DATA.HP_FACTOR +
+      this.baseStats.atk +
+      this.baseStats.def +
+      this.baseStats.spd;
+
     this.power = this.statTotal / (10 * this.level) - 1;
     console.log(
       `avg: ${this.statTotal}(${10 * this.level}) | power: ${(this.power * 100).toFixed(2)}%`
@@ -34,7 +39,7 @@ export class Entity {
     const statBias = DATA.archStatBias[archetype];
 
     return {
-      hp: (UTILS.rollRandom(SPICE) + statBias.hp) * level,
+      hp: (UTILS.rollRandom(SPICE) + statBias.hp) * level * DATA.HP_FACTOR,
       atk: (UTILS.rollRandom(SPICE) + statBias.atk) * level,
       def: (UTILS.rollRandom(SPICE) + statBias.def) * level,
       spd: (UTILS.rollRandom(SPICE) + statBias.spd) * level

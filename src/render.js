@@ -57,7 +57,7 @@ export class Renderer {
     const expInLevel = state.player.exp % EXP_PER_LEVEL;
     const expRatio = clamp01(expInLevel / EXP_PER_LEVEL);
 
-    this.hud.playerLevel.textContent = state.player.currentLevel;
+    this.hud.playerLevel.textContent = state.player.level;
     this.hud.hpText.textContent = `${Math.ceil(currentHp)} / ${state.player.baseStats.hp}`;
     this.hud.hpFill.style.height = `${hpRatio * 100}%`;
     this.hud.expText.textContent = `${expInLevel} / ${EXP_PER_LEVEL}`;
@@ -121,7 +121,7 @@ export class Renderer {
 
     this.drawEnemy(W / 2, 150, now);
     this.drawPlayer(W / 2, 287, now);
-    this.text(`${player.name}  LV${player.level()}`, W / 2, 348, 12);
+    this.text(`${player.name}  LV${player.level}`, W / 2, 348, 12);
 
     const loser = battle.loser();
 

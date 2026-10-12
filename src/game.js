@@ -183,7 +183,7 @@ export class Game {
 
   findDungeon() {
     const biome = UTILS.pickRandom(DATA.biomes);
-    this.state.dungeon = new Dungeon(biome, this.state.player.level());
+    this.state.dungeon = new Dungeon(biome, this.state.player.level);
   }
 
   startBattle() {
@@ -205,8 +205,8 @@ export class Game {
         this.state.player.gold += Math.max(1, Math.floor(randCoin));
       }
 
-      if (this.state.player.level() > this.state.player.currentLevel) {
-        this.state.player.currentLevel++;
+      if (this.state.player.getLevel() > this.state.player.level) {
+        this.state.player.level++;
         this.state.player.levelUp();
         this.state.player.recover();
         this.log("*** PLAYER LEVEL UP!!! ***");

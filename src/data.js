@@ -20,16 +20,16 @@ const damageTypes = {
 };
 
 const raceDamageMods = {
-  human: { beast: 2.0, demi: 1.0, monster: 0.25, human: 0.5 },
-  beast: { demi: 2.0, monster: 1.0, human: 0.25, beast: 0.5 },
-  demi: { monster: 2.0, human: 1.0, beast: 0.25, demi: 0.5 },
-  monster: { human: 2.0, beast: 1.0, demi: 0.25, monster: 0.5 }
+  human: { beast: 1.2, demi: 1.0, monster: 0.8, human: 1.0 },
+  beast: { demi: 1.2, monster: 1.0, human: 0.8, beast: 1.0 },
+  demi: { monster: 1.2, human: 1.0, beast: 0.8, demi: 1.0 },
+  monster: { human: 1.2, beast: 1.0, demi: 0.8, monster: 1.0 }
 };
 
 const archStatBias = {
   balanced: { hp: 2, atk: 3, def: 3, spd: 2 },
   tank: { hp: 4, atk: 1, def: 4, spd: 1 },
-  burst: { hp: 2, atk: 4, def: 2, spd: 2 },
+  burst: { hp: 2, atk: 5, def: 1, spd: 2 },
   swift: { hp: 1, atk: 3, def: 1, spd: 5 }
 };
 
@@ -104,6 +104,8 @@ const biomes = {
 
 const traits = [];
 
+const HP_FACTOR = 3;
+
 export const DATA = {
   races,
   archetypes,
@@ -112,5 +114,6 @@ export const DATA = {
   archStatBias,
   damageTypeMods,
   biomes,
-  traits
+  traits,
+  HP_FACTOR
 };
