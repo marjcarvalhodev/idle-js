@@ -1,49 +1,47 @@
-import { UTILS } from "./utils.js";
 import { DATA } from "./data.js";
-
-const SPICE = 6;
+import { UTILS } from "./utils.js";
 
 export class Entity {
-  constructor(biome = null, level = 1) {
-    this.level = level;
-    this.biome = biome;
-
+  constructor({ biome, level, baseStats }) {
     this.race = this.rollRace();
     this.damageType = this.rollDamageType();
     this.archetype = this.rollArchetype();
-
+    this.level = level;
     this.name = `${this.race} ${this.archetype} ${this.damageType}`;
 
-    this.baseStats = this.rollStats(DATA, this.archetype, this.level);
-    this.stats = { ...this.baseStats, natRes: this.level, magRes: this.level };
+    this.baseStats = { ...baseStats };
+
+    this.stats = {
+      ...this.baseStats,
+      natRes: level,
+      magRes: level
+    };
 
     this.traits = [];
+    this.statusEffects = [];
+    this.actions = [];
+  }
 
-    this.statTotal =
+  recover() {
+    this.stats = {
+      ...this.baseStats,
+      natRes: this.level,
+      magRes: this.level
+    };
+  }
+
+  setBaseStats(stats) {
+    this.baseStats = { ...stats };
+    this.recover();
+  }
+
+  statTotal() {
+    return (
       this.baseStats.hp / DATA.HP_FACTOR +
       this.baseStats.atk +
       this.baseStats.def +
-      this.baseStats.spd;
-
-    this.power = this.statTotal / (10 * this.level) - 1;
-    console.log(
-      `avg: ${this.statTotal}(${10 * this.level}) | power: ${(this.power * 100).toFixed(2)}%`
+      this.baseStats.spd
     );
-  }
-
-  onTurn(ctx) {
-    ctx.attack();
-  }
-
-  rollStats(DATA, archetype, level) {
-    const statBias = DATA.archStatBias[archetype];
-
-    return {
-      hp: (UTILS.rollRandom(SPICE) + statBias.hp) * level * DATA.HP_FACTOR,
-      atk: (UTILS.rollRandom(SPICE) + statBias.atk) * level,
-      def: (UTILS.rollRandom(SPICE) + statBias.def) * level,
-      spd: (UTILS.rollRandom(SPICE) + statBias.spd) * level
-    };
   }
 
   rollRace() {
@@ -55,6 +53,9 @@ export class Entity {
   }
 
   rollArchetype() {
+    if (!this.biome) {
+      return "hero";
+    }
     return UTILS.pickRandom(DATA.archetypes);
   }
 
@@ -64,5 +65,9 @@ export class Entity {
     }
 
     return UTILS.weightedRoll(this.biome.damageBias);
+  }
+
+  get alive() {
+    return this.stats.hp > 0;
   }
 }

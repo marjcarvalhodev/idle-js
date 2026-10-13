@@ -1,5 +1,5 @@
 import { UTILS } from "./utils.js";
-import { Entity } from "./entity.js";
+import { Enemy } from "./enemy.js";
 
 export const dungeonEvents = {
   NOTHING: "nothing",
@@ -51,7 +51,7 @@ export class Dungeon {
   }
 
   rollEnemy() {
-    this.eventData = new Entity(this.biome, this.level);
+    this.eventData = new Enemy(this.biome, this.level);
   }
 
   rollLoot() {

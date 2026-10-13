@@ -10,7 +10,7 @@ export class Player {
     this.damageType = UTILS.pickRandom(DATA.damageTypes);
     this.name = `Hero ${this.race} ${this.damageType} `;
     this.initialStats = { hp: 5 * DATA.HP_FACTOR, atk: 5, def: 5, spd: 5 };
-    this.baseStats = {...this.initialStats};
+    this.baseStats = { ...this.initialStats };
     this.gold = 0;
     this.kills = 0;
     this.deaths = 0;

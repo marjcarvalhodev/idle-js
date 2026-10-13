@@ -1,5 +1,5 @@
 import { DATA } from "./data.js";
-import { Entity } from "./entity.js";
+import { Enemy } from "./enemy.js";
 import { Player } from "./player.js";
 import { Battle } from "./battle.js";
 
@@ -27,9 +27,9 @@ function createHero(race, damageType, level) {
 }
 
 function createEnemy(race, damageType, archetype, level) {
-  // Use Entity's actual stat generation without triggering
+  // Use Enemy's actual stat generation without triggering
   // its random identity rolls and console logging.
-  const enemy = Object.create(Entity.prototype);
+  const enemy = Object.create(Enemy.prototype);
 
   enemy.level = level;
   enemy.biome = null;
