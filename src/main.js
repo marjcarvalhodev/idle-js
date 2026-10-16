@@ -3,6 +3,7 @@ import { loadState, saveState, clearAppCache } from "./save.js";
 import { Renderer } from "./render.js";
 import { UIController } from "./uiController.js";
 import { Input } from "./input.js";
+import { Balance } from "./balance.js"
 
 const GAME_SPEED = 0.5;
 
@@ -33,8 +34,12 @@ const actions = {
   clearcache: () => {
     clearAppCache();
     nav.home();
-  }
+  },
+
+  runBench: () => balance.run(),
 };
+
+const balance = new Balance();
 
 const input = new Input(actions);
 let game = new Game(loadState());
@@ -61,7 +66,7 @@ function frame(now) {
   }
 
   requestAnimationFrame(frame);
-};
+}
 
 window.addEventListener("beforeunload", () => {
   saveState(game.state);

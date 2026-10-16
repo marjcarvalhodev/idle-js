@@ -2,24 +2,46 @@ import { DATA } from "./data.js";
 import { UTILS } from "./utils.js";
 
 export class Entity {
-  constructor({ biome, level, baseStats }) {
-    this.race = this.rollRace();
-    this.damageType = this.rollDamageType();
-    this.archetype = this.rollArchetype();
+  constructor({
+    biome = null,
+    level = 1,
+    spice = 0,
+    race = null,
+    archetype = null,
+    damageType = null
+  } = {}) {
+    this.biome = biome;
     this.level = level;
+
+    this.race = race ?? this.rollRace();
+    this.archetype = archetype ?? this.rollArchetype();
+    this.damageType = damageType ?? this.rollDamageType();
+
     this.name = `${this.race} ${this.archetype} ${this.damageType}`;
 
-    this.baseStats = { ...baseStats };
+    this.statRolls = Object.fromEntries(
+      Object.keys(DATA.archStatBias[this.archetype]).map((stat) => [
+        stat,
+        spice > 0 ? UTILS.rollRandom(spice) : 0
+      ])
+    );
 
-    this.stats = {
-      ...this.baseStats,
-      natRes: level,
-      magRes: level
-    };
+    this.setBaseStats();
+    this.recover();
 
     this.traits = [];
-    this.statusEffects = [];
     this.actions = [];
+  }
+
+  setBaseStats() {
+    const bias = DATA.archStatBias[this.archetype];
+
+    this.baseStats = Object.fromEntries(
+      Object.entries(bias).map(([stat, value]) => [
+        stat,
+        (value + this.statRolls[stat]) * this.level * (stat === "hp" ? DATA.HP_FACTOR : 1)
+      ])
+    );
   }
 
   recover() {
@@ -30,8 +52,9 @@ export class Entity {
     };
   }
 
-  setBaseStats(stats) {
-    this.baseStats = { ...stats };
+  setLevel(level) {
+    this.level = level;
+    this.setBaseStats();
     this.recover();
   }
 
@@ -44,27 +67,20 @@ export class Entity {
     );
   }
 
-  rollRace() {
-    if (!this.biome) {
-      return UTILS.pickRandom(DATA.races);
-    }
+  get power() {
+    return this.statTotal() / (10 * this.level) - 1;
+  }
 
-    return UTILS.weightedRoll(this.biome.raceBias);
+  rollRace() {
+    return this.biome ? UTILS.weightedRoll(this.biome.raceBias) : UTILS.pickRandom(DATA.races);
   }
 
   rollArchetype() {
-    if (!this.biome) {
-      return "hero";
-    }
-    return UTILS.pickRandom(DATA.archetypes);
+    return this.biome ? UTILS.weightedRoll(this.biome.archetypeBias) : DATA.archetypes.HERO;
   }
 
   rollDamageType() {
-    if (!this.biome) {
-      return UTILS.pickRandom(DATA.damageTypes);
-    }
-
-    return UTILS.weightedRoll(this.biome.damageBias);
+    return this.biome ? UTILS.weightedRoll(this.biome.damageBias) : UTILS.pickRandom(DATA.damageTypes);
   }
 
   get alive() {

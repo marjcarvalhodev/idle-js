@@ -1,73 +1,18 @@
-import { UTILS } from "./utils.js";
-import { DATA } from "./data.js";
+import { Entity } from "./entity.js";
 
 const SPICE = 6;
 
-export class Enemy {
-  constructor(biome = null, level = 1) {
-    this.level = level;
-    this.biome = biome;
-
-    this.race = this.rollRace();
-    this.damageType = this.rollDamageType();
-    this.archetype = this.rollArchetype();
-
-    this.name = `${this.race} ${this.archetype} ${this.damageType}`;
-
-    this.baseStats = this.rollStats(DATA, this.archetype, this.level);
-    this.stats = { ...this.baseStats, natRes: this.level, magRes: this.level };
-
-    this.traits = [];
-
-    this.statTotal = this.statTotal();
-
-    this.power = this.statTotal / (10 * this.level) - 1;
-    console.log(
-      `avg: ${this.statTotal}(${10 * this.level}) | power: ${(this.power * 100).toFixed(2)}%`
-    );
+export class Enemy extends Entity {
+  constructor(biome = null, level = 1, options = {}) {
+    super({
+      biome,
+      level,
+      spice: 6,
+      ...options
+    });
   }
 
   onTurn(ctx) {
     ctx.attack();
-  }
-
-  rollStats(DATA, archetype, level) {
-    const statBias = DATA.archStatBias[archetype];
-
-    return {
-      hp: (UTILS.rollRandom(SPICE) + statBias.hp) * level * DATA.HP_FACTOR,
-      atk: (UTILS.rollRandom(SPICE) + statBias.atk) * level,
-      def: (UTILS.rollRandom(SPICE) + statBias.def) * level,
-      spd: (UTILS.rollRandom(SPICE) + statBias.spd) * level
-    };
-  }
-
-  statTotal() {
-    return (
-      this.baseStats.hp / DATA.HP_FACTOR +
-      this.baseStats.atk +
-      this.baseStats.def +
-      this.baseStats.spd
-    );
-  }
-
-  rollRace() {
-    if (!this.biome) {
-      return UTILS.pickRandom(DATA.races);
-    }
-
-    return UTILS.weightedRoll(this.biome.raceBias);
-  }
-
-  rollArchetype() {
-    return UTILS.pickRandom(DATA.archetypes);
-  }
-
-  rollDamageType() {
-    if (!this.biome) {
-      return UTILS.pickRandom(DATA.damageTypes);
-    }
-
-    return UTILS.weightedRoll(this.biome.damageBias);
   }
 }
