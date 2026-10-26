@@ -18,6 +18,8 @@ export class Player extends Entity {
     this.kills = 0;
     this.deaths = 0;
     this.inventory = {};
+
+    this.actions = [attack, defend, heal];
   }
 
   getLevel() {

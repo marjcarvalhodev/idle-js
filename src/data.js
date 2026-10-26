@@ -42,6 +42,21 @@ const damageTypeMods = {
   cosmic: { def: 1.5, natRes: 0.0, magRes: 0.0 }
 };
 
+const raceActionBias = {
+  human: { attack: 7, defend: 3, heal: 0, bite: 0 },
+  beast: { attack: 6, defend: 1, heal: 0, bite: 3 },
+  demi: { attack: 6, defend: 3, heal: 1, bite: 0 },
+  monster: { attack: 6, defend: 0, heal: 1, bite: 3 }
+};
+
+const archActionBias = {
+  balanced: { attack: 4, defend: 4, heal: 1, bite: 1 },
+  tank: { attack: 3, defend: 5, heal: 2, bite: 0 },
+  burst: { attack: 5, defend: 1, heal: 0, bite: 4 },
+  swift: { attack: 5, defend: 1, heal: 1, bite: 3 },
+  hero: { attack: 0, defend: 0, heal: 0, bite: 0 }
+};
+
 const biomes = {
   howlingPlains: {
     archetypeBias: { balanced: 40, tank: 15, burst: 20, swift: 25, hero: 0 },

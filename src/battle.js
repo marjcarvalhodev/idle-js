@@ -21,6 +21,8 @@ export class Battle {
       actor.delay = actionDelay(actor.stats.spd, actor.level);
       actor.nextAction = () => this.attack(actor);
     });
+
+    this.effects = [];
   }
 
   update(dt) {
@@ -144,5 +146,32 @@ export class Battle {
 
   updateUi(target, value) {
     this.damagePopups.push({ target: target, value: value, life: 500 });
+  }
+
+  handleEffect(this) {
+    while (this.effects.lenght > 0) {
+      const [type, source, target, valueFlat, valuePercent, turns] = this.effects.pop();
+
+      switch (type) {
+        case BLEED: {
+          bleed();
+          break;
+        }
+
+        default:
+          break;
+      }
+
+      if (turns > 1) {
+        this.effects.push = {
+          type: type,
+          source: source,
+          target: target,
+          valueFlat: valueFlat,
+          valuePercent: valuePercent,
+          turns: turns--
+        };
+      }
+    }
   }
 }

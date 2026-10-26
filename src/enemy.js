@@ -11,8 +11,4 @@ export class Enemy extends Entity {
       ...options
     });
   }
-
-  onTurn(ctx) {
-    ctx.attack();
-  }
 }
