@@ -1,5 +1,6 @@
 import { DATA } from "./data.js";
 import { Entity } from "./entity.js";
+import { ACTIONS } from "./actions.js";
 
 export const EXP_PER_LEVEL = 1;
 
@@ -18,8 +19,10 @@ export class Player extends Entity {
     this.kills = 0;
     this.deaths = 0;
     this.inventory = {};
+  }
 
-    this.actions = ["attack"];
+  nextAction() {
+    return ACTIONS.ATTACK;
   }
 
   getLevel() {

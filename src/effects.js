@@ -8,8 +8,6 @@ export const effects = {
 };
 
 function damage(actor, target) {
-  console.log("4");
-
   const raceBonus = DATA.raceDamageMods[actor.race][target.race];
   const dmgTypeBonus = DATA.damageTypeMods[actor.damageType];
 
@@ -26,15 +24,12 @@ function damage(actor, target) {
 }
 
 function dodge(actor, target) {
-  console.log("3");
-
   const atkSpd = actor.stats.spd;
   const defSpd = target.stats.spd;
 
   const advantage = (defSpd - atkSpd) / Math.max(1, defSpd + atkSpd);
 
   const chance = Math.max(0, Math.min(0.35, advantage));
-
   return Math.random() < chance;
 }
 

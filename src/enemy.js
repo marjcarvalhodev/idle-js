@@ -1,4 +1,5 @@
 import { Entity } from "./entity.js";
+import { ACTIONS } from "./actions.js";
 
 const SPICE = 6;
 
@@ -10,5 +11,9 @@ export class Enemy extends Entity {
       spice: 6,
       ...options
     });
+  }
+
+  nextAction() {
+    return ACTIONS.ATTACK;
   }
 }

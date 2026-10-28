@@ -188,7 +188,7 @@ export class Game {
 
   startBattle() {
     const enemy = this.state.dungeon.eventData;
-    this.state.battle = new Battle([{ ...this.state.player }, enemy], this.state.atbMode);
+    this.state.battle = new Battle([this.state.player, enemy], this.state.atbMode);
   }
 
   battleResult() {

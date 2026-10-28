@@ -2,24 +2,31 @@ import { DATA } from "./data.js";
 import { UTILS } from "./utils.js";
 import { effects } from "./effects.js";
 
-const actions = {
+export const ACTIONS = {
+  ATTACK: "attack",
+  DEFEND: "defend",
+  heal: "heal"
+};
+
+const actionResult = { result: null, log: null, uiMsg: null };
+
+const actionsMap = {
   attack: (a, t) => attack(a, t),
   defend: (a, t) => defend(a, t),
   heal: (a, t) => heal(a, t)
 };
 
 function attack(actor, target) {
-  console.log("2");
-
   if (effects.dodge(actor, target)) {
-    console.log(`attack failed`);
-    return;
+    const log = `${actor.name} attacks ${target.name}... but misses.`;
+    return { result: true, log: log, uiMsg: "MISS" };
   }
-  console.log("5");
 
   const dmg = effects.damage(actor, target);
   target.stats.hp -= dmg;
-  return dmg;
+
+  const log = `${actor.name} attacks ${target.name} for ${dmg} damage.`;
+  return { result: true, log: log, uiMsg: `-${dmg}` };
 }
 
 function defend(actor, target) {
@@ -44,6 +51,12 @@ function bite(actor, target) {
 }
 
 export function resolveAction(action, actor, target) {
-  console.log("1");
-  return actions[action]?.(actor, target);
+  const handler = actionsMap[action];
+
+  if (!handler) {
+    console.log(`${action} invalid`);
+    return null;
+  }
+
+  return handler(actor, target);
 }
