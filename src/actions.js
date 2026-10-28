@@ -1,31 +1,37 @@
 import { DATA } from "./data.js";
 import { UTILS } from "./utils.js";
+import { effects } from "./effects.js";
 
-export const actions = {
+const actions = {
   attack: (a, t) => attack(a, t),
   defend: (a, t) => defend(a, t),
   heal: (a, t) => heal(a, t)
 };
 
-export function attack(actor, target) {
-  if (dodge(actor, target)) {
+function attack(actor, target) {
+  console.log("2");
+
+  if (effects.dodge(actor, target)) {
     console.log(`attack failed`);
     return;
   }
+  console.log("5");
 
-  target.stats.hp -= damage(actor, target);
+  const dmg = effects.damage(actor, target);
+  target.stats.hp -= dmg;
+  return dmg;
 }
 
-export function defend(actor) {
-  statBoost(actor, "def", 0, 20);
+function defend(actor, target) {
+  effects.statBoost(actor, "def", 0, 20);
 }
 
-export function heal(actor, target) {
-  actor.stats.hp += damage(actor, target);
+function heal(actor, target) {
+  actor.stats.hp += effects.damage(actor, target);
 }
 
-export function bite(actor, target) {
-  damage(actor, target);
+function bite(actor, target) {
+  effects.damage(actor, target);
 
   if (Math.random() < 0.333) {
     battle.effects.push = {
@@ -35,4 +41,9 @@ export function bite(actor, target) {
       turns: 3
     };
   }
+}
+
+export function resolveAction(action, actor, target) {
+  console.log("1");
+  return actions[action]?.(actor, target);
 }

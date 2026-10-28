@@ -7,7 +7,9 @@ export const effects = {
   statBoost: (a, s, v = 0, p = 1) => statBoost(a, s, v, p)
 };
 
-export function damage(actor, target) {
+function damage(actor, target) {
+  console.log("4");
+
   const raceBonus = DATA.raceDamageMods[actor.race][target.race];
   const dmgTypeBonus = DATA.damageTypeMods[actor.damageType];
 
@@ -23,7 +25,9 @@ export function damage(actor, target) {
   return damage;
 }
 
-export function dodge(actor, target) {
+function dodge(actor, target) {
+  console.log("3");
+
   const atkSpd = actor.stats.spd;
   const defSpd = target.stats.spd;
 
@@ -34,12 +38,12 @@ export function dodge(actor, target) {
   return Math.random() < chance;
 }
 
-export function statBoost(actor, stat, value, percent) {
+function statBoost(actor, stat, value, percent) {
   actor.stats[stat] += value;
   actor.stats[stat] *= (100 + percent) / 100;
 }
 
-export function bleed(target, valueFlat, valuePercent) {
+function bleed(target, valueFlat, valuePercent) {
   if (valueFlat > 0) {
     target.stats.hp -= valueFlat;
   }

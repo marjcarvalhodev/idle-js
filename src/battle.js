@@ -1,4 +1,5 @@
 import { DATA } from "./data.js";
+import { resolveAction } from "./actions.js";
 
 const MAX_DELAY = 2000;
 const MAX_ACTIONS = 4;
@@ -75,8 +76,14 @@ export class Battle {
 
     this.turns++;
 
-    const result = actor.nextAction();
-    if (result) this.log = `[TURN ${this.turns}] ${result}`;
+    const result = resolveAction(actor.actions[0], actor, this.targetOf(actor));
+    if (result) {
+      console.log(`resolveAction: ${actor.actions[0]}`);
+    } else {
+      console.log(`default action`);
+      const res = actor.nextAction();
+      this.log = `[TURN ${this.turns}] ${res}`;
+    }
 
     actor.delay += actionDelay(actor.stats.spd, actor.level);
   }
@@ -148,7 +155,7 @@ export class Battle {
     this.damagePopups.push({ target: target, value: value, life: 500 });
   }
 
-  handleEffect(this) {
+  handleEffect() {
     while (this.effects.lenght > 0) {
       const [type, source, target, valueFlat, valuePercent, turns] = this.effects.pop();
 
