@@ -65,18 +65,23 @@ export class Balance {
       enemyOverkill: 0
     };
 
-    const originalAttack = battle.attack.bind(battle);
+    const battleTurn = battle.takeTurn.bind(battle);
 
-    battle.attack = (actor) => {
+    battle.takeTurn = (dt, actor) => {
       const target = battle.targetOf(actor);
       const before = target.stats.hp;
 
       const isHero = actor.archetype === "hero";
       const prefix = isHero ? "player" : "enemy";
 
-      metrics[`${prefix}Attempts`]++;
+      const beforeTurns = battle.turns;
+      const result = battleTurn(dt, actor);
 
-      const result = originalAttack(actor);
+      if (battle.turns === beforeTurns) {
+        return result;
+      }
+
+      metrics[`${prefix}Attempts`]++;
 
       const raw = Math.max(0, before - target.stats.hp);
 
@@ -218,7 +223,7 @@ export class Balance {
 
     const races = values(DATA.races);
     const damageTypes = values(DATA.damageTypes);
-    const archetypes = values(DATA.archetypes).slice(0,4);
+    const archetypes = values(DATA.archetypes).slice(0, 4);
 
     const total =
       levels.length * races.length ** 2 * damageTypes.length ** 2 * archetypes.length * runs;

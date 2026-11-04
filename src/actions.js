@@ -1,11 +1,12 @@
 import { DATA } from "./data.js";
 import { UTILS } from "./utils.js";
-import { effects } from "./effects.js";
+import { effects, STATUS } from "./effects.js";
 
 export const ACTIONS = {
   ATTACK: "attack",
   DEFEND: "defend",
-  heal: "heal"
+  HEAL: "heal",
+  BITE: "bite"
 };
 
 const actionResult = { result: null, log: null, uiMsg: null };
@@ -30,7 +31,7 @@ function attack(actor, target) {
 }
 
 function defend(actor, target) {
-  effects.statBoost(actor, "def", 0, 20);
+  effects.statBoost(actor, "def", 0, 10);
 }
 
 function heal(actor, target) {
@@ -38,16 +39,28 @@ function heal(actor, target) {
 }
 
 function bite(actor, target) {
-  effects.damage(actor, target);
+  const status = BLEED;
+  const chance = 0.33;
 
-  if (Math.random() < 0.333) {
-    battle.effects.push = {
-      type: BLEED,
-      target: target,
-      valuePercent: 5,
-      turns: 3
-    };
+  const attack = attack(actor, target);
+
+  if (!attack.result) {
+    return attack;
   }
+
+  if (find.target.status.find(status)) {
+    return attack;
+  }
+
+  applyStatusEffect(target, status, chance);
+}
+
+function applyStatusEffect(target, chance, status) {
+  if (Math.random() > chance) return;
+
+  const st = STATUS[status];
+
+  target.status.push = { type: st.type, turns: st.duration };
 }
 
 export function resolveAction(action, actor, target) {
@@ -59,4 +72,15 @@ export function resolveAction(action, actor, target) {
   }
 
   return handler(actor, target);
+}
+
+export function resolveStatus(target, status) {
+  const st = STATUS[status];
+
+  effects[st.type]?.(target, st.value, st.percent);
+  target.status[status].turns--;
+
+  if (target.status[status].turns < 1) {
+    target.status[status] = delete;
+  }
 }

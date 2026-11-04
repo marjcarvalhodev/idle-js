@@ -4,7 +4,8 @@ import { UTILS } from "./utils.js";
 export const effects = {
   damage: (a, t) => damage(a, t),
   dodge: (a, t) => dodge(a, t),
-  statBoost: (a, s, v = 0, p = 1) => statBoost(a, s, v, p)
+  statBoost: (a, s, v = 0, p = 1) => statBoost(a, s, v, p),
+  bleed: (t, v, p) => bleed(t, v, p)
 };
 
 function damage(actor, target) {
@@ -38,11 +39,18 @@ function statBoost(actor, stat, value, percent) {
   actor.stats[stat] *= (100 + percent) / 100;
 }
 
-function bleed(target, valueFlat, valuePercent) {
-  if (valueFlat > 0) {
-    target.stats.hp -= valueFlat;
+function bleed(target, value, percent) {
+  if (value > 0) {
+    target.stats.hp -= value;
+    return;
   }
-  if (valuePercent > 0) {
-    target.stats.hp -= (valuePercent * target.stats.hp) / 100;
+
+  if (percent > 0) {
+    target.stats.hp -= (percent * target.stats.hp) / 100;
+    return;
   }
 }
+
+export const STATUS = {
+  BLEED: { type: bleed, duration: 3, value: null, percent: 5 }
+};

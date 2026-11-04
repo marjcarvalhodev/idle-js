@@ -1,5 +1,5 @@
 import { DATA } from "./data.js";
-import { resolveAction } from "./actions.js";
+import { resolveAction, resolveStatus } from "./actions.js";
 
 const MAX_DELAY = 2000;
 const MAX_ACTIONS = 4;
@@ -22,10 +22,16 @@ export class Battle {
 
     this.actors.forEach((actor) => {
       actor.delay = actionDelay(actor.stats.spd, actor.level);
+      actor.status = [];
     });
 
     this.effects = [];
   }
+
+  player = () => this.actors.find((a) => a.archetype === "hero");
+  enemy = () => this.actors.find((a) => a.archetype !== "hero");
+  loser = () => this.actors.find((a) => a.stats.hp <= 0);
+  targetOf = (a) => this.actors.find((o) => o !== a && o.stats.hp > 0);
 
   update(dt) {
     if (this.battleEnded()) {
@@ -34,6 +40,7 @@ export class Battle {
     }
 
     for (const actor of this.actors) {
+      handleEffect(actor);
       if (actor.stats.hp <= 0) continue;
 
       this.takeTurn(dt, actor);
@@ -53,6 +60,10 @@ export class Battle {
     if (this.phase === "waiting") {
       this.phase = "move";
     }
+  }
+
+  playerTurn(a) {
+    return this.phase === "fight" && a.archetype === "hero";
   }
 
   battleEnded() {
@@ -85,44 +96,18 @@ export class Battle {
     actor.delay += actionDelay(actor.stats.spd, actor.level);
   }
 
-  playerTurn(a) {
-    return this.phase === "fight" && a.archetype === "hero";
-  }
-
-  player = () => this.actors.find((a) => a.archetype === "hero");
-  enemy = () => this.actors.find((a) => a.archetype !== "hero");
-  loser = () => this.actors.find((a) => a.stats.hp <= 0);
-  targetOf = (a) => this.actors.find((o) => o !== a && o.stats.hp > 0);
-
   updateUi(actor, value) {
     const target = actor.archetype === "hero" ? "enemy" : "player";
     this.damagePopups.push({ target: target, value: value, life: 500 });
   }
 
-  handleEffect() {
-    while (this.effects.lenght > 0) {
-      const [type, source, target, valueFlat, valuePercent, turns] = this.effects.pop();
+  handleEffect(actor) {
+    if (actor.status.length < 1) return;
 
-      switch (type) {
-        case BLEED: {
-          bleed();
-          break;
-        }
-
-        default:
-          break;
+    actor.status.forEach((status) => {
+      if (actor.alive()) {
+        resolveStatus(actor, status);
       }
-
-      if (turns > 1) {
-        this.effects.push = {
-          type: type,
-          source: source,
-          target: target,
-          valueFlat: valueFlat,
-          valuePercent: valuePercent,
-          turns: turns--
-        };
-      }
-    }
+    });
   }
 }
