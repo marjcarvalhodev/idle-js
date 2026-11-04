@@ -8,7 +8,7 @@ const MIN_DELAY = MAX_DELAY / MAX_ACTIONS;
 const decay = (spd, level) => Math.exp((-SPEED_FACTOR * spd) / Math.sqrt(level));
 const actionDelay = (spd, level) => MIN_DELAY + (MAX_DELAY - MIN_DELAY) * decay(spd, level);
 
-const actionResult = { result: null, log: null, uiMsg: null };
+const actionResult = { result: null, log: null, uiMsg: null, effect: null };
 
 export class Battle {
   constructor(actors = [], atbMode = "auto") {
@@ -18,6 +18,8 @@ export class Battle {
     this.turns = 0;
     this.log = "battle started";
 
+    this.battleTick = MIN_DELAY;
+
     this.damagePopups = [];
 
     this.actors.forEach((actor) => {
@@ -25,7 +27,7 @@ export class Battle {
       actor.status = [];
     });
 
-    this.effects = [];
+    this.runningEffects = [];
   }
 
   player = () => this.actors.find((a) => a.archetype === "hero");
@@ -39,8 +41,13 @@ export class Battle {
       return;
     }
 
+    this.battleTick -= dt;
+    if (this.battleTick <= 0) {
+      this.handleEffect();
+      this.battleTick += MIN_DELAY;
+    }
+
     for (const actor of this.actors) {
-      this.handleEffect(actor);
       if (actor.stats.hp <= 0) continue;
 
       this.takeTurn(dt, actor);
@@ -90,6 +97,10 @@ export class Battle {
 
     const actionResult = resolveAction(actor.nextAction(), actor, this.targetOf(actor));
 
+    if (actionResult.effect) {
+      this.runningEffects.push(actionResult.effect);
+    }
+
     this.log = `[TURN ${this.turns}] ${actionResult.log}`;
     this.updateUi(actor, actionResult.uiMsg);
 
@@ -101,12 +112,10 @@ export class Battle {
     this.damagePopups.push({ target: target, value: value, life: 500 });
   }
 
-  handleEffect(actor) {
-    if (actor.status.length < 1) return;
-
-    actor.status.forEach((status) => {
-      if (actor.alive()) {
-        resolveStatus(actor, status);
+  handleEffect() {
+    this.runningEffects.forEach((ae) => {
+      if (ae.target.alive) {
+        resolveStatus(ae);
       }
     });
   }

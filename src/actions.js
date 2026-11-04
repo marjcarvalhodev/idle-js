@@ -9,13 +9,14 @@ export const ACTIONS = {
   BITE: "bite"
 };
 
-const actionResult = { result: null, log: null, uiMsg: null };
+const actionResult = { result: null, log: null, uiMsg: null, effect: null };
 
 const actionsMap = {
   attack: (a, t) => attack(a, t),
   defend: (a, t) => defend(a, t),
   heal: (a, t) => heal(a, t),
-  bite: (a, t) => bite(a, t)
+  bite: (a, t) => bite(a, t),
+  regen: (a, t) => regen(a, t)
 };
 
 function attack(actor, target) {
@@ -36,7 +37,9 @@ function defend(actor, target) {
 }
 
 function heal(actor, target) {
-  actor.stats.hp += effects.damage(actor, target);
+  const max = target.baseStats.hp;
+  const dmg = effects.damage(actor, target);
+  target.stats.hp = Math.max(max, target.stats.hp + dmg);
 }
 
 function bite(actor, target) {
@@ -53,14 +56,18 @@ function bite(actor, target) {
     return at;
   }
 
-  applyStatusEffect(target, status, chance);
+  const se = applyStatusEffect(target, status, chance);
 
   return at;
 }
 
+function regen(actor, target) {
+  return actionResult.map(r => r.effect = )
+}
+
 function applyStatusEffect(target, chance, status) {
-  if (Math.random() > chance) return;
-  target.status.push = { type: status.type, turns: status.duration };
+  if (Math.random() > chance) return null;
+  return { type: status.type, turns: status.duration };
 }
 
 export function resolveAction(action, actor, target) {

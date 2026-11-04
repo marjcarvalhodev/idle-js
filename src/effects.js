@@ -4,8 +4,9 @@ import { UTILS } from "./utils.js";
 export const effects = {
   damage: (a, t) => damage(a, t),
   dodge: (a, t) => dodge(a, t),
-  statBoost: (a, s, v = 0, p = 1) => statBoost(a, s, v, p),
-  bleed: (t, v, p) => bleed(t, v, p)
+  statBoost: (a, s, v, p) => mutateStat(a, s, v, p),
+  bleed: (t, v, p) => bleed(t, v, p),
+  regen: (t, v, p) => regen(t, v, p)
 };
 
 function damage(actor, target) {
@@ -34,23 +35,23 @@ function dodge(actor, target) {
   return Math.random() < chance;
 }
 
-function statBoost(actor, stat, value, percent) {
-  actor.stats[stat] += value;
-  actor.stats[stat] *= (100 + percent) / 100;
+function mutateStat(actor, stat, value, percent, sign = "pos") {
+  if (!value && !percent) return;
+  
+  const mod = value ? value : (100 + percent) / 100;
+
+  actor.stats[stat] += sign === "pos" ? mod : -mod;
 }
 
 function bleed(target, value, percent) {
-  if (value > 0) {
-    target.stats.hp -= value;
-    return;
-  }
+  mutateStat(target, "hp", BLEED.value, BLEED.percent, "pos");
+}
 
-  if (percent > 0) {
-    target.stats.hp -= (percent * target.stats.hp) / 100;
-    return;
-  }
+function regen(target, value, percent) {
+  mutateStat(target, "hp", REGEN.value, REGEN.percent, "neg");
 }
 
 export const STATUS = {
-  BLEED: { type: bleed, duration: 3, value: null, percent: 5 }
+  BLEED: { type: bleed, duration: 3, trigger: "tick", value: 5, percent: null },
+  REGEN: { type: regen, duration: 5, trigger: "tick", value: null, percent: 5 }
 };
