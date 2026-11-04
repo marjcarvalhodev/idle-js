@@ -14,7 +14,8 @@ const actionResult = { result: null, log: null, uiMsg: null };
 const actionsMap = {
   attack: (a, t) => attack(a, t),
   defend: (a, t) => defend(a, t),
-  heal: (a, t) => heal(a, t)
+  heal: (a, t) => heal(a, t),
+  bite: (a, t) => bite(a, t)
 };
 
 function attack(actor, target) {
@@ -39,28 +40,27 @@ function heal(actor, target) {
 }
 
 function bite(actor, target) {
-  const status = BLEED;
+  const status = STATUS.BLEED;
   const chance = 0.33;
 
-  const attack = attack(actor, target);
+  const at = resolveAction(ACTIONS.ATTACK, actor, target);
 
-  if (!attack.result) {
-    return attack;
+  if (!at.result) {
+    return at;
   }
 
-  if (find.target.status.find(status)) {
-    return attack;
+  if (target.status.find((st) => st.type === status.type)) {
+    return at;
   }
 
   applyStatusEffect(target, status, chance);
+
+  return at;
 }
 
 function applyStatusEffect(target, chance, status) {
   if (Math.random() > chance) return;
-
-  const st = STATUS[status];
-
-  target.status.push = { type: st.type, turns: st.duration };
+  target.status.push = { type: status.type, turns: status.duration };
 }
 
 export function resolveAction(action, actor, target) {
@@ -74,13 +74,13 @@ export function resolveAction(action, actor, target) {
   return handler(actor, target);
 }
 
-export function resolveStatus(target, status) {
-  const st = STATUS[status];
+export function resolveStatus(target, statusType) {
+  const st = STATUS[statusType];
 
-  effects[st.type]?.(target, st.value, st.percent);
-  target.status[status].turns--;
+  effects[statusType]?.(target, st.value, st.percent);
+  target.status[statusType].turns--;
 
-  if (target.status[status].turns < 1) {
-    target.status[status] = delete;
+  if (target.status[statusType].turns < 1) {
+    target.status = target.status.filter((status) => status.type === statusType);
   }
 }

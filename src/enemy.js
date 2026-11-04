@@ -14,6 +14,10 @@ export class Enemy extends Entity {
   }
 
   nextAction() {
+    if (Math.random() < 0.33) {
+      return ACTIONS.BITE;
+    }
+
     return ACTIONS.ATTACK;
   }
 }

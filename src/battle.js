@@ -40,7 +40,7 @@ export class Battle {
     }
 
     for (const actor of this.actors) {
-      handleEffect(actor);
+      this.handleEffect(actor);
       if (actor.stats.hp <= 0) continue;
 
       this.takeTurn(dt, actor);
