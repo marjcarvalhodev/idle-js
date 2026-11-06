@@ -57,34 +57,4 @@ export class Dungeon {
   rollLoot() {
     this.eventData = "item";
   }
-
-  sim() {
-    // UTILS.simulation(this.eventWeights);
-
-    const races = {
-      human: 0,
-      beast: 0,
-      demi: 0,
-      monster: 0
-    };
-
-    const damage = {
-      natural: 0,
-      magical: 0,
-      spirit: 0,
-      cosmic: 0
-    };
-
-    const n = 10000;
-
-    for (let i = 0; i < n; i++) {
-      this.rollEnemy();
-
-      races[this.eventData.race]++;
-      damage[this.eventData.damageType]++;
-    }
-
-    this.log = races;
-    this.log = damage;
-  }
 }

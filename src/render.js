@@ -133,7 +133,7 @@ export class Renderer {
       }
     }
 
-    this.drawDamagePopups(now);
+    this.drawDamagePopups();
   }
 
   bar(x, y, w, h, ratio) {

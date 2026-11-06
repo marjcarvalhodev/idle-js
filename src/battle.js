@@ -95,10 +95,11 @@ export class Battle {
 
     this.turns++;
 
-    const actionResult = resolveAction(actor.nextAction(), actor, this.targetOf(actor));
+    const target = this.targetOf(actor);
+    const actionResult = resolveAction(actor.nextAction(), actor, target);
 
     if (actionResult.effect) {
-      this.runningEffects.push(actionResult.effect);
+      this.runningEffects.push({ ...actionResult.effect, target: target });
     }
 
     this.log = `[TURN ${this.turns}] ${actionResult.log}`;

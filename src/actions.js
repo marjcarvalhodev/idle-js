@@ -56,18 +56,16 @@ function bite(actor, target) {
     return at;
   }
 
-  const se = applyStatusEffect(target, status, chance);
+  if (Math.random() > chance) {
+    at.effect = status;
+  }
 
   return at;
 }
 
 function regen(actor, target) {
-  return actionResult.map(r => r.effect = )
-}
-
-function applyStatusEffect(target, chance, status) {
-  if (Math.random() > chance) return null;
-  return { type: status.type, turns: status.duration };
+  STATUS;
+  // return actionResult.map(r => r.effect = )
 }
 
 export function resolveAction(action, actor, target) {
@@ -81,13 +79,7 @@ export function resolveAction(action, actor, target) {
   return handler(actor, target);
 }
 
-export function resolveStatus(target, statusType) {
-  const st = STATUS[statusType];
-
-  effects[statusType]?.(target, st.value, st.percent);
-  target.status[statusType].turns--;
-
-  if (target.status[statusType].turns < 1) {
-    target.status = target.status.filter((status) => status.type === statusType);
-  }
+export function resolveStatus(status) {
+  console.log(`${status.target.name} affected by ${status.type}`);
+  effects[status.type]?.(status.target, status.value, status.percent);
 }

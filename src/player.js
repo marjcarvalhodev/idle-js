@@ -22,9 +22,9 @@ export class Player extends Entity {
   }
 
   nextAction() {
-    if (this.stats.hp < this.baseStats.hp * 0.5 && Math.random() < 0.5) {
-      return ACTIONS.REGEN;
-    }
+    // if (this.stats.hp < this.baseStats.hp * 0.5 && Math.random() < 0.5) {
+    //   return ACTIONS.REGEN;
+    // }
 
     return ACTIONS.ATTACK;
   }

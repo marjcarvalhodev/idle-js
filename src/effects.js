@@ -44,14 +44,14 @@ function mutateStat(actor, stat, value, percent, sign = "pos") {
 }
 
 function bleed(target, value, percent) {
-  mutateStat(target, "hp", BLEED.value, BLEED.percent, "pos");
+  mutateStat(target, "hp", STATUS.BLEED.value, STATUS.BLEED.percent, "pos");
 }
 
 function regen(target, value, percent) {
-  mutateStat(target, "hp", REGEN.value, REGEN.percent, "neg");
+  mutateStat(target, "hp", STATUS.REGEN.value, STATUS.REGEN.percent, "neg");
 }
 
 export const STATUS = {
-  BLEED: { type: bleed, duration: 3, trigger: "tick", value: 5, percent: null },
-  REGEN: { type: regen, duration: 5, trigger: "tick", value: null, percent: 5 }
+  BLEED: { type: "bleed", duration: 3, trigger: "tick", value: 5, percent: null },
+  REGEN: { type: "regen", duration: 5, trigger: "tick", value: null, percent: 5 }
 };
