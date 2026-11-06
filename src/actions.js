@@ -22,7 +22,7 @@ const actionsMap = {
 function attack(actor, target) {
   if (effects.dodge(actor, target)) {
     const log = `${actor.name} attacks ${target.name}... but misses.`;
-    return { result: true, log: log, uiMsg: "MISS" };
+    return { result: false, log: log, uiMsg: "MISS" };
   }
 
   const dmg = effects.damage(actor, target);
@@ -80,6 +80,6 @@ export function resolveAction(action, actor, target) {
 }
 
 export function resolveStatus(status) {
-  console.log(`${status.target.name} affected by ${status.type}`);
   effects[status.type]?.(status.target, status.value, status.percent);
+  return `${status.target.name} affected by ${status.type}`;
 }

@@ -18,7 +18,7 @@ export class Battle {
     this.turns = 0;
     this.log = "battle started";
 
-    this.battleTick = MIN_DELAY;
+    this.battleTick = MAX_DELAY;
 
     this.damagePopups = [];
 
@@ -45,6 +45,11 @@ export class Battle {
     if (this.battleTick <= 0) {
       this.handleEffect();
       this.battleTick += MIN_DELAY;
+
+      if (this.battleEnded()) {
+        this.phase = "ended";
+        return;
+      }
     }
 
     for (const actor of this.actors) {
@@ -102,22 +107,30 @@ export class Battle {
       this.runningEffects.push({ ...actionResult.effect, target: target });
     }
 
-    this.log = `[TURN ${this.turns}] ${actionResult.log}`;
+    this.toLog(actionResult.log);
     this.updateUi(actor, actionResult.uiMsg);
 
     actor.delay += actionDelay(actor.stats.spd, actor.level);
   }
 
-  updateUi(actor, value) {
-    const target = actor.archetype === "hero" ? "enemy" : "player";
+  updateUi(target, value) {
     this.damagePopups.push({ target: target, value: value, life: 500 });
   }
 
   handleEffect() {
-    this.runningEffects.forEach((ae) => {
-      if (ae.target.alive) {
-        resolveStatus(ae);
-      }
-    });
+    for (const ae of this.runningEffects) {
+      if (!ae.target.alive) continue;
+
+      const r = resolveStatus(ae);
+      this.toLog(r);
+      this.updateUi(ae.target, `-${ae.value || ae.percent}`);
+      ae.duration--;
+    }
+
+    this.runningEffects = this.runningEffects.filter((ae) => ae.duration > 0 && ae.target.alive);
+  }
+
+  toLog(message) {
+    this.log = `[TURN ${this.turns}] ${message}`;
   }
 }

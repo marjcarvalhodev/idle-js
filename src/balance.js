@@ -62,13 +62,19 @@ export class Balance {
       enemyDodges: 0,
 
       playerOverkill: 0,
-      enemyOverkill: 0
+      enemyOverkill: 0,
+
+      playerStatusDamage: 0,
+      enemyStatusDamage: 0
     };
 
     const battleTurn = battle.takeTurn.bind(battle);
 
     battle.takeTurn = (dt, actor) => {
       const target = battle.targetOf(actor);
+      if (!target) {
+        return;
+      }
       const before = target.stats.hp;
 
       const isHero = actor.archetype === "hero";
@@ -96,6 +102,21 @@ export class Balance {
       }
 
       battle.damagePopups.length = 0;
+
+      return result;
+    };
+
+    const originalHandleEffect = battle.handleEffect.bind(battle);
+
+    battle.handleEffect = () => {
+      const playerBefore = hero.stats.hp;
+      const enemyBefore = enemy.stats.hp;
+
+      const result = originalHandleEffect();
+
+      metrics.enemyStatusDamage += Math.max(0, playerBefore - hero.stats.hp);
+
+      metrics.playerStatusDamage += Math.max(0, enemyBefore - enemy.stats.hp);
 
       return result;
     };
@@ -148,7 +169,10 @@ export class Balance {
       enemyAttemptsTotal: 0,
 
       playerDodgesTotal: 0,
-      enemyDodgesTotal: 0
+      enemyDodgesTotal: 0,
+
+      playerStatusDamage: 0,
+      enemyStatusDamage: 0
     };
   }
 
@@ -184,7 +208,9 @@ export class Balance {
       playerHitRate: a.playerAttemptsTotal ? a.playerHitsTotal / a.playerAttemptsTotal : 0,
       enemyHitRate: a.enemyAttemptsTotal ? a.enemyHitsTotal / a.enemyAttemptsTotal : 0,
       playerDodgeRate: a.enemyAttemptsTotal ? a.playerDodgesTotal / a.enemyAttemptsTotal : 0,
-      enemyDodgeRate: a.playerAttemptsTotal ? a.enemyDodgesTotal / a.playerAttemptsTotal : 0
+      enemyDodgeRate: a.playerAttemptsTotal ? a.enemyDodgesTotal / a.playerAttemptsTotal : 0,
+      playerStatusDamage: a.playerStatusDamage,
+      enemyStatusDamage: a.enemyStatusDamage
     };
   }
 
@@ -275,6 +301,9 @@ export class Balance {
 
                   agg.playerDodgesTotal += result.playerDodges;
                   agg.enemyDodgesTotal += result.enemyDodges;
+
+                  agg.playerStatusDamage += result.playerStatusDamage;
+                  agg.enemyStatusDamage += result.enemyStatusDamage;
 
                   completed++;
 

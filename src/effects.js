@@ -37,21 +37,21 @@ function dodge(actor, target) {
 
 function mutateStat(actor, stat, value, percent, sign = "pos") {
   if (!value && !percent) return;
-  
-  const mod = value ? value : (100 + percent) / 100;
+
+  const mod = value ? value : (actor.stats[stat] * percent) / 100;
 
   actor.stats[stat] += sign === "pos" ? mod : -mod;
 }
 
 function bleed(target, value, percent) {
-  mutateStat(target, "hp", STATUS.BLEED.value, STATUS.BLEED.percent, "pos");
+  mutateStat(target, "hp", value, percent, "neg");
 }
 
 function regen(target, value, percent) {
-  mutateStat(target, "hp", STATUS.REGEN.value, STATUS.REGEN.percent, "neg");
+  mutateStat(target, "hp", value, percent, "pos");
 }
 
 export const STATUS = {
-  BLEED: { type: "bleed", duration: 3, trigger: "tick", value: 5, percent: null },
-  REGEN: { type: "regen", duration: 5, trigger: "tick", value: null, percent: 5 }
+  BLEED: { type: "bleed", duration: 3, trigger: "tick", value: 5, percent: null, stack: 3 },
+  REGEN: { type: "regen", duration: 5, trigger: "tick", value: null, percent: 5, stack: 0 }
 };
