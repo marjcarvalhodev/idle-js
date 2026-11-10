@@ -1,5 +1,3 @@
-import { DATA } from "./data.js";
-import { UTILS } from "./utils.js";
 import { effects, STATUS } from "./effects.js";
 
 export const ACTIONS = {

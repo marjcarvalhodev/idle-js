@@ -1,6 +1,6 @@
 import { DATA } from "./data.js";
 import { Entity } from "./entity.js";
-import { ACTIONS } from "./actions.js";
+import { ACTIONS } from "../battle/actions.js";
 
 export const EXP_PER_LEVEL = 1;
 

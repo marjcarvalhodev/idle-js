@@ -1,5 +1,5 @@
 import { Entity } from "./entity.js";
-import { ACTIONS } from "./actions.js";
+import { ACTIONS } from "../battle/actions.js";
 
 const SPICE = 6;
 

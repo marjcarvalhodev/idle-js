@@ -1,5 +1,4 @@
-import { DATA } from "./data.js";
-import { UTILS } from "./utils.js";
+import { DATA } from "../entity/data.js";
 
 export const effects = {
   damage: (a, t) => damage(a, t),

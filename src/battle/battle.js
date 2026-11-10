@@ -1,4 +1,3 @@
-import { DATA } from "../entity/data.js";
 import { resolveAction, resolveStatus } from "./actions.js";
 
 const MAX_DELAY = 2000;
