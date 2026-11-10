@@ -1,8 +1,8 @@
 import { UTILS } from "./utils.js";
-import { DATA } from "./data.js";
-import { Player } from "./player.js";
+import { DATA } from "./entity/data.js";
+import { Player } from "./entity/player.js";
 import { Dungeon, dungeonEvents } from "./dungeon.js";
-import { Battle } from "./battle.js";
+import { Battle } from "./battle/battle.js";
 
 const gameStates = {
   EXPLORING: "exploring",

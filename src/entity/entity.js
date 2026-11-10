@@ -1,5 +1,5 @@
 import { DATA } from "./data.js";
-import { UTILS } from "./utils.js";
+import { UTILS } from "../utils.js";
 
 export class Entity {
   constructor({
@@ -80,7 +80,9 @@ export class Entity {
   }
 
   rollDamageType() {
-    return this.biome ? UTILS.weightedRoll(this.biome.damageBias) : UTILS.pickRandom(DATA.damageTypes);
+    return this.biome
+      ? UTILS.weightedRoll(this.biome.damageBias)
+      : UTILS.pickRandom(DATA.damageTypes);
   }
 
   get alive() {

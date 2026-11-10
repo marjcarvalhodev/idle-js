@@ -1,6 +1,6 @@
-import { DATA } from "./data.js";
-import { Enemy } from "./enemy.js";
-import { Player } from "./player.js";
+import { DATA } from "../entity/data.js";
+import { Enemy } from "../entity/enemy.js";
+import { Player } from "../entity/player.js";
 import { Battle } from "./battle.js";
 
 const values = (o) => Object.values(o);

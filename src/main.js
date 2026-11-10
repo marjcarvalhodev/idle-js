@@ -3,7 +3,7 @@ import { loadState, saveState, clearAppCache } from "./save.js";
 import { Renderer } from "./render.js";
 import { UIController } from "./uiController.js";
 import { Input } from "./input.js";
-import { Balance } from "./balance.js"
+import { Balance } from "./battle/balance.js";
 
 const GAME_SPEED = 0.5;
 
@@ -36,7 +36,7 @@ const actions = {
     nav.home();
   },
 
-  runBench: () => balance.run(),
+  runBench: () => balance.run()
 };
 
 const balance = new Balance();

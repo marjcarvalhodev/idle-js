@@ -1,5 +1,5 @@
 import { UTILS } from "./utils.js";
-import { Enemy } from "./enemy.js";
+import { Enemy } from "./entity/enemy.js";
 
 export const dungeonEvents = {
   NOTHING: "nothing",

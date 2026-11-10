@@ -1,4 +1,4 @@
-import { EXP_PER_LEVEL } from "./player.js";
+import { EXP_PER_LEVEL } from "./entity/player.js";
 
 const W = 420;
 const H = 380;
