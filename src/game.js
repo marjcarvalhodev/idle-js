@@ -55,7 +55,6 @@ export class Game {
       ...(savedState ? UTILS.clone(savedState) : {})
     };
 
-    this.state.dungeons = [];
     this.state.gameState = gameStates.IDLE;
 
     this.state.log = Array.isArray(this.state.log) ? this.state.log : [];

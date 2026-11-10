@@ -35,7 +35,7 @@ export class Renderer {
     this.gfx = canvas.getContext("2d");
     this.gfx.imageSmoothingEnabled = false;
 
-    this.game = game;
+    this.state = game.state;
 
     this.hud = Object.fromEntries(
       Object.entries(HUD_ELEMENTS).map(([key, id]) => [key, document.getElementById(id)])
@@ -43,12 +43,12 @@ export class Renderer {
   }
 
   render(now) {
-    const state = this.game.state;
-    const battle = state.battle;
-    const stats = state.player.stats;
+    const dungeon = this.state.dungeons[0];
+    const battle = dungeon?.battle;
+    const stats = this.state.player.stats;
 
-    this.renderCanvas(now, state, battle);
-    this.updateHud(state, battle, stats);
+    this.renderCanvas(now, dungeon, battle);
+    this.updateHud(this.state, battle, stats);
   }
 
   updateHud(state, battle, stats) {
@@ -76,27 +76,27 @@ export class Renderer {
     this.hud.battleLog.textContent = state.log.join("\n");
   }
 
-  renderCanvas(now, state, battle) {
-    this.drawBackground();
+  renderCanvas(now, dungeon, battle) {
+    this.drawBackground(dungeon);
 
-    if (state.paused) {
-      this.text("PAUSED...", W / 2, H / 2, 20);
-      return;
-    }
+    // if (state.paused) {
+    //   this.text("PAUSED...", W / 2, H / 2, 20);
+    //   return;
+    // }
 
     if (!battle) {
       this.text("LOADING...", W / 2, H / 2, 20);
       return;
     }
 
-    this.drawBattle(now, battle);
+    this.drawBattle(now, dungeon);
   }
 
-  drawBackground() {
+  drawBackground(dungeon) {
     const gfx = this.gfx;
 
     const colorsDefault = { primary: "#152315", secondary: "#192919" };
-    const colors = this.game.state.dungeon?.biome.ui.bgColor ?? colorsDefault;
+    const colors = dungeon?.biome.ui.bgColor ?? colorsDefault;
 
     rect(gfx, 0, 0, W, H, colors.primary);
 
@@ -109,11 +109,12 @@ export class Renderer {
     }
   }
 
-  drawBattle(now, battle) {
+  drawBattle(now, dungeon) {
+    const battle = dungeon.battle;
     const player = battle.player();
     const enemy = battle.enemy();
 
-    this.text(`${this.game.state.dungeon.biome.ui.title}`, W / 2, 32, 18);
+    this.text(`${dungeon.biome.ui.title}`, W / 2, 32, 18);
     this.text(`${enemy.name}  LV${enemy.level}`, W / 2, 64, 18);
 
     this.bar(115, 78, 190, 16, enemy.stats.hp / enemy.baseStats.hp);
@@ -193,9 +194,7 @@ export class Renderer {
     rect(this.gfx, x + 18, y + 5 + bob, 20, 6, "#9a743f");
   }
 
-  drawDamagePopups() {
-    const battle = this.game.state.battle;
-
+  drawDamagePopups(battle) {
     if (!battle?.damagePopups) return;
 
     const keep = [];
