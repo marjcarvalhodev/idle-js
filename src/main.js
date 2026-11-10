@@ -22,6 +22,7 @@ const actions = {
 
   atbMode: () => game.atbMode(),
   battleAction: () => game.battleAction(),
+  startExploration: () => game.startExploration(),
 
   pause: () => game.pause(),
   autobattle: () => game.autoBattle(),
