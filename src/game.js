@@ -78,8 +78,8 @@ export class Game {
     });
   }
 
-  startExploration() {
-    const d = new Dungeon(this.state.player, "howlingPlains", this.state.player.level);
+  startExploration(biome) {
+    const d = new Dungeon(this.state.player, biome, this.state.player.level);
     this.state.dungeons.push(d);
   }
 
@@ -112,7 +112,7 @@ export class Game {
     this.input.addActions({
       atbMode: () => this.atbMode(),
       battleAction: () => this.battleAction(),
-      startExploration: () => this.startExploration(),
+      startExploration: (biome) => this.startExploration(biome),
       autobattle: () => this.autoBattle()
     });
   }

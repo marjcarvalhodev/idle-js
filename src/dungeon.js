@@ -22,6 +22,7 @@ export const dungeonEvents = {
 export class Dungeon {
   constructor(player, biome = null, level = 1) {
     this.player = player;
+    this.biomeKey = biome;
     this.biome = DATA.biomes[biome] ?? UTILS.pickRandom(DATA.biomes);
     this.level = level;
 

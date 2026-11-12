@@ -16,7 +16,10 @@ export class Input {
 
   handle(button) {
     const action = this.buttonAction(button);
-    this.actions[action]?.();
+    const arg = this.buttonArg(button);
+
+    if (arg) this.actions[action]?.(arg);
+    else this.actions[action]?.();
   }
 
   button(event) {
@@ -25,5 +28,9 @@ export class Input {
 
   buttonAction(button) {
     return button.dataset.action.slice(4);
+  }
+
+  buttonArg(button) {
+    return button.dataset.arg;
   }
 }

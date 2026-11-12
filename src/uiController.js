@@ -25,6 +25,7 @@ export class UIController {
     this.viewContainer = viewContainer;
     this.currentView = null;
     this.renderer = null;
+    this.renderState = null;
 
     this.scene = "battle";
     this.overlay = null;
@@ -53,6 +54,7 @@ export class UIController {
   async loadView(viewName = "home") {
     this.hud = null;
     this.renderer = null;
+    this.renderState = null;
 
     this.currentView = viewName;
 
@@ -80,7 +82,7 @@ export class UIController {
         break;
 
       case "battle":
-        this.renderer?.render(dt, state);
+        this.renderer?.render(dt, this.renderState);
         this.updatePlayerInfo(state);
         this.updateBattleInfo(state);
         break;

@@ -1,5 +1,4 @@
 import { UTILS } from "./utils.js";
-import { EXP_PER_LEVEL } from "./entity/player.js";
 
 const W = 420;
 const H = 380;
@@ -16,7 +15,7 @@ export class Renderer {
   }
 
   render(now, state) {
-    const dungeon = state.dungeons[0];
+    const dungeon = state;
     const battle = dungeon?.battle;
 
     this.renderCanvas(now, dungeon, battle);

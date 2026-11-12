@@ -33,7 +33,10 @@ input.addActions({
   world: () => uic.loadView("world"),
   bag: () => uic.loadView("bag"),
   settings: () => uic.loadView("settings"),
-  gotoDungeon: () => uic.loadView("battle")
+  gotoDungeon: (key) => {
+    uic.renderState = game.state.dungeons.find((d) => d.biomeKey === key);
+    uic.loadView("battle");
+  }
 });
 
 input.addActions({
