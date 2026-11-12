@@ -5,8 +5,6 @@ import { UIController } from "./uiController.js";
 import { Input } from "./input.js";
 import { Balance } from "./battle/balance.js";
 
-saveOnClose();
-
 const GAME_SPEED = 0.5;
 const viewContainer = document.querySelector("#view-container");
 export const uic = new UIController(viewContainer);
@@ -14,13 +12,14 @@ export const input = new Input();
 let game = new Game(loadState());
 let lastFrame = performance.now();
 
+saveOnClose(game);
+
 function frame(now) {
   const realDt = Math.min(100, now - lastFrame);
   lastFrame = now;
-  const gameDt = realDt * GAME_SPEED;
 
-  game.update(gameDt);
-  uic.updateView(realDt);
+  game.update(realDt * GAME_SPEED);
+  uic.updateView(realDt, game.state);
 
   snapshot(realDt, game.state);
 

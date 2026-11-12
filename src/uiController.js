@@ -52,6 +52,8 @@ export class UIController {
 
   async loadView(viewName = "home") {
     this.hud = null;
+    this.renderer = null;
+
     this.currentView = viewName;
 
     const response = await fetch(`./views/${viewName}.html`);
@@ -60,19 +62,27 @@ export class UIController {
     if (this.currentView !== viewName) return;
 
     this.viewContainer.innerHTML = html;
+
+    if (viewName === "home") {
+      this.setHud();
+    }
+
+    if (viewName === "battle") {
+      this.setHud();
+      this.setCanvas();
+    }
   }
 
-  updateView(dt) {
+  updateView(dt, state) {
     switch (this.currentView) {
-      case "home": {
-        if (this.hud == null) {
-          this.setHud();
-        }
-
+      case "home":
+        this.updatePlayerInfo(state);
         break;
-      }
+
       case "battle":
-        // renderer?.render(dt);
+        this.renderer?.render(dt, state);
+        this.updatePlayerInfo(state);
+        this.updateBattleInfo(state);
         break;
 
       case "bag": {
@@ -90,16 +100,22 @@ export class UIController {
 
   setHud() {
     this.hud = Object.fromEntries(
-      Object.entries(HUD_ELEMENTS).map(([key, id]) => [key, document.getElementById(id)])
+      Object.entries(HUD_ELEMENTS).map(([key, id]) => [
+        key,
+        this.viewContainer.querySelector(`#${id}`)
+      ])
     );
   }
 
-  updatePlayerInfo(player) {
-    if (this.hud == null) {
-      this.setHud();
-      return;
-    }
+  setCanvas() {
+    const canvas = this.viewContainer.querySelector("#canvas");
+    this.renderer = new Renderer(canvas);
+  }
 
+  updatePlayerInfo(state) {
+    if (!this.hud) return;
+
+    const player = state.player;
     const baseStats = player.baseStats;
 
     const currentHp = Math.max(0, player.stats?.hp ?? 0);
@@ -121,7 +137,12 @@ export class UIController {
     this.hud.deaths.textContent = player.deaths;
   }
 
-  updateBattleInfo(battle = null, log = null) {
+  updateBattleInfo(state) {
+    if (!this.hud) return;
+    const dungeon = state.dungeons[0];
+    const battle = dungeon?.battle;
+    const log = dungeon?.log;
+
     this.hud.enemyName.textContent = battle
       ? `${battle.enemy().name} LV${battle.enemy().level}`
       : "—";

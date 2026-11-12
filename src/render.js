@@ -4,73 +4,22 @@ import { EXP_PER_LEVEL } from "./entity/player.js";
 const W = 420;
 const H = 380;
 
-const HUD_ELEMENTS = {
-  playerLevel: "player-level",
-  hpText: "hp-text",
-  hpFill: "hp-fill",
-  expText: "exp-text",
-  expFill: "exp-fill",
-  atk: "atk",
-  def: "def",
-  spd: "spd",
-  gold: "gold",
-  kills: "kills",
-  deaths: "deaths",
-  enemyName: "enemy-name",
-  battleState: "battle-state",
-  battleLog: "battle-log",
-  dialog: "dialog"
-};
-
 function rect(gfx, x, y, w, h, color) {
   gfx.fillStyle = color;
   gfx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h));
 }
 
 export class Renderer {
-  constructor(canvas, game) {
+  constructor(canvas) {
     this.gfx = canvas.getContext("2d");
     this.gfx.imageSmoothingEnabled = false;
-
-    this.state = game.state;
-
-    this.hud = Object.fromEntries(
-      Object.entries(HUD_ELEMENTS).map(([key, id]) => [key, document.getElementById(id)])
-    );
   }
 
-  render(now) {
-    const dungeon = this.state.dungeons[0];
+  render(now, state) {
+    const dungeon = state.dungeons[0];
     const battle = dungeon?.battle;
-    const stats = this.state.player.stats;
 
     this.renderCanvas(now, dungeon, battle);
-    this.updateHud(this.state, battle, stats);
-  }
-
-  updateHud(state, battle, stats) {
-    const currentHp = battle ? Math.max(0, stats.hp) : state.player.baseStats.hp;
-    const hpRatio = UTILS.clamp01(currentHp / state.player.baseStats.hp);
-    const expInLevel = state.player.exp % EXP_PER_LEVEL;
-    const expRatio = UTILS.clamp01(expInLevel / EXP_PER_LEVEL);
-
-    this.hud.playerLevel.textContent = state.player.level;
-    this.hud.hpText.textContent = `${Math.ceil(currentHp)} / ${state.player.baseStats.hp}`;
-    this.hud.hpFill.style.height = `${hpRatio * 100}%`;
-    this.hud.expText.textContent = `${expInLevel} / ${EXP_PER_LEVEL}`;
-    this.hud.expFill.style.setProperty("--exp", `${expRatio * 100}%`);
-
-    this.hud.atk.textContent = state.player.baseStats.atk;
-    this.hud.def.textContent = state.player.baseStats.def;
-    this.hud.spd.textContent = state.player.baseStats.spd;
-    this.hud.gold.textContent = state.player.gold;
-    this.hud.kills.textContent = state.player.kills;
-    this.hud.deaths.textContent = state.player.deaths;
-    this.hud.enemyName.textContent = battle
-      ? `${battle.enemy().name} LV${battle.enemy().level}`
-      : "—";
-    this.hud.battleState.textContent = battle?.phase?.toUpperCase() ?? "IDLE";
-    this.hud.battleLog.textContent = state.log.join("\n");
   }
 
   renderCanvas(now, dungeon, battle) {

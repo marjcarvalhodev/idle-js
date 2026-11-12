@@ -1,7 +1,8 @@
 import { UTILS } from "./utils.js";
-import { input, uic } from "./main.js";
+import { Input } from "./input.js";
 import { Player } from "./entity/player.js";
 import { Dungeon } from "./dungeon.js";
+import { uic } from "./main.js";
 
 const gameStates = {
   IDLE: "idle"
@@ -74,8 +75,6 @@ export class Game {
     this.state.dungeons?.forEach((dungeon) => {
       dungeon?.update(dt);
     });
-
-    uic.updatePlayerInfo(this.state.player);
   }
 
   startExploration() {
@@ -108,12 +107,17 @@ export class Game {
     this.state.battle?.playerAction();
   }
 
+  gotoDungeon() {
+    uic.loadView("battle");
+  }
+
   inputHandler() {
-    input.addActions({
+    new Input().addActions({
       atbMode: () => this.atbMode(),
       battleAction: () => this.battleAction(),
       startExploration: () => this.startExploration(),
-      autobattle: () => this.autoBattle()
+      autobattle: () => this.autoBattle(),
+      gotoDungeon: () => this.gotoDungeon()
     });
   }
 }
