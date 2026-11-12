@@ -25,11 +25,6 @@ export class Renderer {
   renderCanvas(now, dungeon, battle) {
     this.drawBackground(dungeon);
 
-    // if (state.paused) {
-    //   this.text("PAUSED...", W / 2, H / 2, 20);
-    //   return;
-    // }
-
     if (!battle) {
       this.text("LOADING...", W / 2, H / 2, 20);
       return;
@@ -80,7 +75,7 @@ export class Renderer {
       }
     }
 
-    this.drawDamagePopups();
+    this.drawDamagePopups(battle);
   }
 
   bar(x, y, w, h, ratio) {
@@ -146,9 +141,11 @@ export class Renderer {
     const keep = [];
 
     for (const popup of battle.damagePopups) {
+      const isHero = popup.target.archetype === "hero";
+
       const age = 500 - popup.life;
-      const x = W / 2;
-      const baseY = popup.target === "enemy" ? 135 : 285;
+      const x = W / 2 + (isHero ? 50 : -50);
+      const baseY = isHero ? 285 : 135;
 
       const y = baseY - age * 0.05;
 

@@ -107,7 +107,7 @@ export class Battle {
     }
 
     this.toLog(actionResult.log);
-    this.updateUi(actor, actionResult.uiMsg);
+    this.updateUi(target, actionResult.uiMsg);
 
     actor.delay += actionDelay(actor.stats.spd, actor.level);
   }
