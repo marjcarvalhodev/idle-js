@@ -1,4 +1,5 @@
 import { UTILS } from "./utils.js";
+import { input } from "./main.js";
 import { Player } from "./entity/player.js";
 import { Dungeon } from "./dungeon.js";
 
@@ -6,12 +7,11 @@ const gameStates = {
   IDLE: "idle"
 };
 
-
 const DEFAULT_STATE = {
   version: 1,
   gameState: gameStates.IDLE,
   autoBattle: false,
-  paused: true,
+  paused: false,
   dungeons: [],
   atbMode: "auto",
   log: [],
@@ -50,6 +50,8 @@ function loadPlayer(savedPlayer) {
 
 export class Game {
   constructor(savedState) {
+    this.inputHandler();
+
     this.state = {
       ...UTILS.clone(DEFAULT_STATE),
       ...(savedState ? UTILS.clone(savedState) : {})
@@ -101,5 +103,14 @@ export class Game {
 
   battleAction() {
     this.state.battle?.playerAction();
+  }
+
+  inputHandler() {
+    input.addActions({
+      atbMode: () => this.atbMode(),
+      battleAction: () => this.battleAction(),
+      startExploration: () => this.startExploration(),
+      autobattle: () => this.autoBattle()
+    });
   }
 }

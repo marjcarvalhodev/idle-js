@@ -1,29 +1,29 @@
 export class Input {
-  constructor(actions) {
-    this.actions = actions;
+  constructor() {
+    this.actions = {};
 
-    document.addEventListener("pointerdown", (event) => {
-      const button = event.target.closest("[data-action]");
+    document.addEventListener("click", (event) => {
+      const button = this.button(event);
       if (!button) return;
 
-      event.preventDefault();
-      button.classList.add("pressed");
-
-      this.handle(button.dataset.action);
-    });
-
-    document.addEventListener("pointerup", (event) => {
-      const button = event.target.closest("[data-action]");
-      button?.classList.remove("pressed");
-    });
-
-    document.addEventListener("pointercancel", (event) => {
-      const button = event.target.closest("[data-action]");
-      button?.classList.remove("pressed");
+      this.handle(button);
     });
   }
 
-  handle(action) {
+  addActions(newActions) {
+    this.actions = { ...this.actions, newActions };
+  }
+
+  handle(button) {
+    const action = this.buttonAction(button);
     this.actions[action]?.();
+  }
+
+  button(event) {
+    return event.target.closest('[data-action^="btn-"]');
+  }
+
+  buttonAction(button) {
+    return button.dataset.action.slice(4);
   }
 }

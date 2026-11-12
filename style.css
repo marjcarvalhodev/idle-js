@@ -428,6 +428,19 @@ button {
   border-top: var(--border-heavy) solid var(--color-button-border);
 }
 
+#top-nav {
+  width: 100%;
+  flex: 0 0 60px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+
+  padding: var(--space-4);
+  border-bottom: var(--border-heavy) solid var(--color-button-border);
+}
+
 .button {
   flex: 1 1 0;
   height: 44px;
@@ -445,6 +458,11 @@ button {
 .button.pressed {
   transform: scale(0.94);
   background: var(--color-button-pressed);
+}
+
+.sq {
+  flex: 0 0 44px;
+  align-self: flex-end;
 }
 
 /* Overlays */
@@ -472,6 +490,7 @@ button {
 }
 
 .dialog {
+  height: 80%;
   width: min(80%, 360px);
 
   padding: var(--space-7);

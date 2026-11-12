@@ -1,5 +1,11 @@
 const KEY = "idle-rpg-save-v1";
 
+export function saveOnClose(game) {
+  window.addEventListener("beforeunload", () => {
+    saveState(game.state);
+  });
+}
+
 export function loadState() {
   try {
     const raw = localStorage.getItem(KEY);
@@ -25,6 +31,17 @@ export function saveState(state) {
     );
   } catch {
     // Storage can be unavailable in private/restricted contexts.
+  }
+}
+
+let saveAccumulator = 0;
+
+export function snapshot(dt, state) {
+  saveAccumulator += dt;
+
+  if (saveAccumulator >= 3_000) {
+    saveState(state);
+    saveAccumulator = 0;
   }
 }
 
