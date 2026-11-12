@@ -1,9 +1,24 @@
 const KEY = "idle-rpg-save-v1";
 
+let saveAccumulator = 0;
+
+export function snapshot(dt, state) {
+  saveAccumulator += dt;
+
+  if (saveAccumulator >= 3_000) {
+    saveState(state);
+    saveAccumulator = 0;
+  }
+}
+
 export function saveOnClose(game) {
   window.addEventListener("beforeunload", () => {
     saveState(game.state);
   });
+}
+
+export function deleteState() {
+  localStorage.removeItem(KEY);
 }
 
 export function loadState() {
@@ -22,26 +37,10 @@ export function loadState() {
 
 export function saveState(state) {
   try {
-    localStorage.setItem(
-      KEY,
-      JSON.stringify({
-        ...state,
-        lastSavedAt: Date.now()
-      })
-    );
+    const data = JSON.stringify({ ...state, lastSavedAt: Date.now() });
+    localStorage.setItem(KEY, data);
   } catch {
     // Storage can be unavailable in private/restricted contexts.
-  }
-}
-
-let saveAccumulator = 0;
-
-export function snapshot(dt, state) {
-  saveAccumulator += dt;
-
-  if (saveAccumulator >= 3_000) {
-    saveState(state);
-    saveAccumulator = 0;
   }
 }
 

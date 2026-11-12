@@ -11,7 +11,7 @@ export class Input {
   }
 
   addActions(newActions) {
-    this.actions = { ...this.actions, newActions };
+    this.actions = { ...this.actions, ...newActions };
   }
 
   handle(button) {

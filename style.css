@@ -186,6 +186,21 @@ button {
   gap: var(--space-4);
 }
 
+.card {
+  width: 100%;
+  min-height: 48px;
+
+  padding: var(--space-5);
+
+  text-align: left;
+  color: var(--color-text);
+
+  border: var(--border-thin) solid var(--color-button-border);
+  border-radius: var(--radius-small);
+
+  background: var(--color-bg-panel);
+}
+
 .menu-button {
   width: 100%;
   min-height: 48px;

@@ -1,3 +1,4 @@
+import { UTILS } from "./utils.js";
 import { EXP_PER_LEVEL } from "./entity/player.js";
 
 const W = 420;
@@ -20,10 +21,6 @@ const HUD_ELEMENTS = {
   battleLog: "battle-log",
   dialog: "dialog"
 };
-
-function clamp01(value) {
-  return Math.max(0, Math.min(1, value));
-}
 
 function rect(gfx, x, y, w, h, color) {
   gfx.fillStyle = color;
@@ -53,9 +50,9 @@ export class Renderer {
 
   updateHud(state, battle, stats) {
     const currentHp = battle ? Math.max(0, stats.hp) : state.player.baseStats.hp;
-    const hpRatio = clamp01(currentHp / state.player.baseStats.hp);
+    const hpRatio = UTILS.clamp01(currentHp / state.player.baseStats.hp);
     const expInLevel = state.player.exp % EXP_PER_LEVEL;
-    const expRatio = clamp01(expInLevel / EXP_PER_LEVEL);
+    const expRatio = UTILS.clamp01(expInLevel / EXP_PER_LEVEL);
 
     this.hud.playerLevel.textContent = state.player.level;
     this.hud.hpText.textContent = `${Math.ceil(currentHp)} / ${state.player.baseStats.hp}`;
@@ -139,7 +136,7 @@ export class Renderer {
 
   bar(x, y, w, h, ratio) {
     const gfx = this.gfx;
-    ratio = clamp01(ratio);
+    ratio = UTILS.clamp01(ratio);
 
     rect(gfx, x, y, w, h, "#101010");
     rect(gfx, x + 2, y + 2, (w - 4) * ratio, h - 4, "#771320");

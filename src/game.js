@@ -1,5 +1,5 @@
 import { UTILS } from "./utils.js";
-import { input } from "./main.js";
+import { input, uic } from "./main.js";
 import { Player } from "./entity/player.js";
 import { Dungeon } from "./dungeon.js";
 
@@ -54,7 +54,8 @@ export class Game {
 
     this.state = {
       ...UTILS.clone(DEFAULT_STATE),
-      ...(savedState ? UTILS.clone(savedState) : {})
+      ...(savedState ? UTILS.clone(savedState) : {}),
+      dungeons: []
     };
 
     this.state.gameState = gameStates.IDLE;
@@ -71,8 +72,10 @@ export class Game {
     }
 
     this.state.dungeons?.forEach((dungeon) => {
-      dungeon.update(dt);
+      dungeon?.update(dt);
     });
+
+    uic.updatePlayerInfo(this.state.player);
   }
 
   startExploration() {

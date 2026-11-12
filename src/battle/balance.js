@@ -12,6 +12,8 @@ export class Balance {
   constructor() {
     this.running = false;
     this.results = null;
+
+    this.run();
   }
 
   async run() {

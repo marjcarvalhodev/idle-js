@@ -51,10 +51,15 @@ function simulation(weights, n = 10000) {
   return results;
 }
 
+function clamp01(value) {
+  return Math.max(0, Math.min(1, value));
+}
+
 export const UTILS = {
   clone,
   rollRandom,
   pickRandom,
   weightedRoll,
+  clamp01,
   simulation
 };
