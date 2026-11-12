@@ -50,7 +50,8 @@ function loadPlayer(savedPlayer) {
 }
 
 export class Game {
-  constructor(savedState) {
+  constructor(input, savedState) {
+    this.input = input;
     this.inputHandler();
 
     this.state = {
@@ -107,17 +108,12 @@ export class Game {
     this.state.battle?.playerAction();
   }
 
-  gotoDungeon() {
-    uic.loadView("battle");
-  }
-
   inputHandler() {
-    new Input().addActions({
+    this.input.addActions({
       atbMode: () => this.atbMode(),
       battleAction: () => this.battleAction(),
       startExploration: () => this.startExploration(),
-      autobattle: () => this.autoBattle(),
-      gotoDungeon: () => this.gotoDungeon()
+      autobattle: () => this.autoBattle()
     });
   }
 }
