@@ -1,8 +1,6 @@
 import { UTILS } from "./utils.js";
-import { Input } from "./input.js";
 import { Player } from "./entity/player.js";
 import { Dungeon } from "./dungeon.js";
-import { uic } from "./main.js";
 
 const gameStates = {
   IDLE: "idle"
